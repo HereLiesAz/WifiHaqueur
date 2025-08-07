@@ -1,27 +1,13 @@
-package com.hayyaalassalah.faizanahmad.wifihacker;
+package com.hereliesaz.wifihacker;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
-import android.net.wifi.SupplicantState;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,10 +16,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends Activity {
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity {
 
     TextView mainText;
     WifiManager mainWifi;
@@ -47,35 +35,29 @@ public class MainActivity extends Activity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
-                        .setDefaultFontPath("fonts/Lato-Light.ttf")
-                        .setFontAttrId(R.attr.fontPath)
-                        .build()
-        );
-
         setContentView(R.layout.activity_main);
 
 
         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         List<ScanResult> networkList = wifi.getScanResults();
-        for (ScanResult network : networkList)
-        {
-            ssids.add(network.SSID.toString());
-            capabilities.add(network.capabilities);
-            String Capabilities =  network.capabilities;
-            System.out.println(network.SSID + " capabilities : " + Capabilities);
+        if (networkList != null) {
+            for (ScanResult network : networkList) {
+                ssids.add(network.SSID.toString());
+                capabilities.add(network.capabilities);
+                String Capabilities = network.capabilities;
+                System.out.println(network.SSID + " capabilities : " + Capabilities);
 
+            }
         }
 
 
-        WifiManager wifiManager2 = (WifiManager)this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if(wifiManager2.isWifiEnabled() == false) {
+        WifiManager wifiManager2 = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager2.isWifiEnabled() == false) {
             wifiManager2.setWifiEnabled(true);
         }
 
         listview = (ListView) findViewById(R.id.listView);
-        adapter = new ArrayAdapter(getApplicationContext(),R.layout.text_view,ssids);
+        adapter = new ArrayAdapter(getApplicationContext(), R.layout.text_view, ssids);
         listview.setAdapter(adapter);
 
         mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
@@ -87,7 +69,7 @@ public class MainActivity extends Activity {
                 System.out.println(ssids.get(position));
                 intent.putExtra("ssid", ssids.get(position));
                 intent.putExtra("detail", capabilities.get(position));
-               // unregisterReceiver(receiverWifi);
+                // unregisterReceiver(receiverWifi);
                 startActivity(intent);
             }
         });
@@ -179,13 +161,6 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this,InstructionsClass.class);
         startActivity(intent);
     }
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
-    }
-
-
 
 }
 

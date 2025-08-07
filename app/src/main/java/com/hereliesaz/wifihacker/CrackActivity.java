@@ -1,44 +1,35 @@
-package com.hayyaalassalah.faizanahmad.wifihacker;
+package com.hereliesaz.wifihacker;
 
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
-
-import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 /**
  * Created by Faizan Ahmad on 1/1/2017.
  */
-public class CrackActivity extends Activity {
+public class CrackActivity extends AppCompatActivity {
 
     TextView SSID;
     TextView detail;
@@ -47,15 +38,9 @@ public class CrackActivity extends Activity {
     TextView status;
     String ssid = "";
     private BroadcastReceiver receiver;
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
-                        .setDefaultFontPath("fonts/Lato-Light.ttf")
-                        .setFontAttrId(R.attr.fontPath)
-                        .build()
-        );
-
-
         setContentView(R.layout.crack_activity);
 
         IntentFilter intentFilter = new IntentFilter();
@@ -239,10 +224,5 @@ public class CrackActivity extends Activity {
         manager.notify(0, builder.build());
     }
 
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
-    }
 
 }

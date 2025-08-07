@@ -1,4 +1,4 @@
-package com.hayyaalassalah.faizanahmad.wifihacker;
+package com.hereliesaz.wifihacker;
 
 import org.junit.Test;
 

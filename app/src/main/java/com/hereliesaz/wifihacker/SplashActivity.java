@@ -1,20 +1,20 @@
-package com.hayyaalassalah.faizanahmad.wifihacker;
+package com.hereliesaz.wifihacker;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.test.mock.MockPackageManager;
 import android.util.Log;
 
-public class SplashActivity extends Activity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class SplashActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_PERMISSION = 2;
     private static int SPLASH_TIME_OUT = 5000;
     String mPermission = Manifest.permission.ACCESS_FINE_LOCATION;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -26,11 +26,11 @@ public class SplashActivity extends Activity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent i = new Intent(SplashActivity.this,MainActivity.class);
+                Intent i = new Intent(SplashActivity.this, MainActivity.class);
                 startActivity(i);
                 finish();
             }
-        },SPLASH_TIME_OUT);
+        }, SPLASH_TIME_OUT);
     }
 
 
@@ -40,12 +40,11 @@ public class SplashActivity extends Activity {
         Log.e("Req Code", "" + requestCode);
         if (requestCode == REQUEST_CODE_PERMISSION) {
             if (grantResults.length == 1 &&
-                    grantResults[0] == MockPackageManager.PERMISSION_GRANTED ) {
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                 // Success Stuff here
 
-            }
-            else{
+            } else {
                 // Failure Stuff
             }
         }
