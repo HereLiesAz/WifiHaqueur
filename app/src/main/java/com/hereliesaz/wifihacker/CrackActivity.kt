@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
 
 class CrackActivity : ComponentActivity() {
     private val viewModel: CrackViewModel by viewModels()
@@ -24,7 +25,9 @@ class CrackActivity : ComponentActivity() {
         val detail = intent.getStringExtra("detail") ?: ""
 
         setContent {
-            CrackScreen(viewModel, ssid, detail)
+            WifiHackerTheme {
+                CrackScreen(viewModel, ssid, detail)
+            }
         }
     }
 }

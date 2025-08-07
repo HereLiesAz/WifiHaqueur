@@ -12,15 +12,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
 import kotlinx.coroutines.delay
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            SplashScreen {
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
+            WifiHackerTheme {
+                SplashScreen {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                }
             }
         }
     }
