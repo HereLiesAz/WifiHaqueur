@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 /**
@@ -87,43 +89,18 @@ public class CrackActivity extends AppCompatActivity {
     }
     int index = 0;
     ArrayList<String> arraylist = new ArrayList<String>();
-    private class crackPassword extends AsyncTask<Integer, Integer, Integer>{
+    private class crackPassword extends AsyncTask<Integer, Integer, Integer> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            status.setText("Passwords loaded, cracking now");
+            status.setText("Downloading dictionaries...");
         }
 
         @Override
         protected Integer doInBackground(Integer... params) {
-
-            InputStream json= null;
-            try {
-                json = getAssets().open("passwords.txt");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            BufferedReader in = null;
-            try {
-                in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            String str;
-
-            try {
-                while ((str=in.readLine()) != null) {
-                    arraylist.add(str);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            downloadDictionaries();
+            publishProgress(0);
+            status.setText("Passwords loaded, cracking now");
             WifiConfiguration wifiConfig = new WifiConfiguration();
             wifiConfig.SSID = String.format("\"%s\"", ssid);
             index = 0;
@@ -175,6 +152,56 @@ public class CrackActivity extends AppCompatActivity {
             status.setText("Password is: " + arraylist.get(index-2));
         }
     }
+
+    private void downloadDictionaries() {
+        String[] urls = {
+                "https://drive.google.com/file/d/12ohN_3CktkNUGlDwHP-hzawpaqTEaMem/view?usp=drive_link",
+                "https://drive.google.com/file/d/1FHAd6hnQoyKtoJzqak3f1koFQ-jlw65P/view?usp=drive_link",
+                "https://drive.google.com/file/d/1xF_-ZLONJE9GkeHMp9GxRJpt3BqlCgO-/view?usp=drive_link",
+                "https://drive.google.com/file/d/1Tn09w5kzccSZra13iGB5HpD7zMWwVRVS/view?usp=drive_link",
+                "https://drive.google.com/file/d/11uWVOmuMPl-564mKz996uNmm3OVGpBqq/view?usp=drive_link",
+                "https://drive.google.com/file/d/1G4pkjSNoKJWyjoI8l5-iCPdWlWyLKcBn/view?usp=drive_link",
+                "https://drive.google.com/file/d/168ednlVlBdIL0NrJqFBKusmLG5uRSI5I/view?usp=drive_link",
+                "https://drive.google.com/file/d/1_T-B7g4elsKb_qIYTqr-Jl8uxKYS1943/view?usp=drive_link",
+                "https://drive.google.com/file/d/1JMoCTjOW1luWsrhgGp4kPWi4EJCnIakC/view?usp=drive_link",
+                "https://drive.google.com/file/d/1GM8SV6hxPx3mTtwdNjSnjJyyFydT8ixP/view?usp=drive_link",
+                "https://drive.google.com/file/d/1VC9TOuWdmAtjD7Z4Yb29pK7-SELOC-bM/view?usp=drive_link",
+                "https://drive.google.com/file/d/1lSLJquH6WPGp_3yxVsODL1x3ZYlUYihw/view?usp=drive_link"
+        };
+
+        for (String url : urls) {
+            try {
+                String fileId = url.split("/d/")[1].split("/")[0];
+                String downloadUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+                URL u = new URL(downloadUrl);
+                HttpURLConnection c = (HttpURLConnection) u.openConnection();
+                c.setRequestMethod("GET");
+                c.connect();
+                InputStream in = c.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    arraylist.add(line);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // also read from local assets
+        try {
+            InputStream json = getAssets().open("passwords.txt");
+            BufferedReader in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
+            String str;
+            while ((str = in.readLine()) != null) {
+                arraylist.add(str);
+            }
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     crackPassword cr;
 
     public void onCrackStart(View view){
