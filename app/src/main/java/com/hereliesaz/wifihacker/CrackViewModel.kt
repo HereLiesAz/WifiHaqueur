@@ -1,17 +1,21 @@
 package com.hereliesaz.wifihacker
 
+import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.wifi.WifiNetworkSuggestion
+import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
+import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
+import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -32,6 +36,12 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
     private val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     @SuppressWarnings("deprecation")
+    @RequiresPermission(
+        allOf = [
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE
+        ]
+    )
     fun startCracking(ssid: String, detail: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _status.value = "Downloading dictionaries..."
@@ -54,7 +64,8 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
                         return@launch
                     }
                 } else {
-                    val wifiConfig = android.net.wifi.WifiConfiguration()
+                    val wifiConfig = WifiConfiguration()
+                    // Corrected String.format calls for SSID and preSharedKey
                     wifiConfig.SSID = String.format("\"%s\"", ssid)
                     wifiConfig.preSharedKey = String.format("\"%s\"", password)
 
@@ -65,12 +76,13 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 registerNetworkCallback(password)
-                kotlinx.coroutines.delay(5000) // 5 second timeout for each password
+                delay(5000) // 5 second timeout for each password
             }
             _status.value = "Failed to crack password."
         }
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     private fun registerNetworkCallback(password: String) {
         val networkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)

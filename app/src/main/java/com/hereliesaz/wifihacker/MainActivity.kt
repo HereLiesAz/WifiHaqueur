@@ -1,7 +1,7 @@
 package com.hereliesaz.wifihacker
 
 import android.Manifest
-import android.content.Context
+import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
@@ -72,6 +73,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+@Preview
+@Composable
+fun MainScreenPreview() {
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
+    val viewModel = MainViewModel(application = application)
+    MainScreen(viewModel = viewModel, onScanClick = {})
+}
+
 
 @Composable
 fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
