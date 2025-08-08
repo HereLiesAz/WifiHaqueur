@@ -3,4 +3,6 @@
     <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="WifiHackerTheme">WifiHackerTheme</style>
 </resources>
