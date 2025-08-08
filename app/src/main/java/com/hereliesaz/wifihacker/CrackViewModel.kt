@@ -6,8 +6,8 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
+import android.net.wifi.WifiManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -28,8 +28,7 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
     val progress: StateFlow<Int> = _progress
 
     private val wifiManager = application.getSystemService(Context.WIFI_SERVICE) as WifiManager
-    private val connectivityManager =
-        application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     fun startCracking(ssid: String, detail: String) {
         viewModelScope.launch(Dispatchers.IO) {
