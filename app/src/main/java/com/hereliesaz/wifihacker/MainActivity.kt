@@ -20,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -75,11 +76,11 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
     val scanResults by viewModel.scanResults.collectAsState()
     val context = LocalContext.current
+    val scanInitiated by viewModel.scanInitiated.collectAsState()
 
-    // Automatically scan when the screen is first displayed, if permission is already granted.
-    LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            viewModel.startScan()
+    LaunchedEffect(scanInitiated) {
+        if (scanInitiated == false) {
+            Toast.makeText(context, "Scan failed to start. Please try again later.", Toast.LENGTH_SHORT).show()
         }
     }
 
