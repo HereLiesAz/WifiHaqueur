@@ -8,6 +8,8 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiNetworkSuggestion
 import android.net.wifi.WifiManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +32,13 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
     private val wifiManager = application.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun startCracking(ssid: String, detail: String) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            _status.value = "Cracking not supported on this Android version."
+            return
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             _status.value = "Downloading dictionaries..."
             val passwords = downloadDictionaries()
