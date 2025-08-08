@@ -43,7 +43,7 @@ fun CrackScreen(viewModel: CrackViewModel, ssid: String, detail: String) {
         Button(onClick = { viewModel.startCracking(ssid, detail) }) {
             Text("Start Cracking")
         }
-        LinearProgressIndicator(progress = progress / 100f)
+        LinearProgressIndicator(progress = { progress / 100f })
         Text(text = "Status: $status")
     }
 }
