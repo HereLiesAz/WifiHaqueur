@@ -10,18 +10,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
@@ -32,7 +37,7 @@ class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                viewModel.startScan()
+                viewModel.refreshScanResults()
             } else {
                 // TODO: Show a dialog explaining why the permission is needed
             }
@@ -44,10 +49,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WifiHackerTheme {
                 MainScreen(
-                    viewModel = viewModel,
-                    onScanClick = {
-                        requestLocationPermission()
-                    }
+                    viewModel = viewModel
                 )
             }
         }
@@ -59,7 +61,7 @@ class MainActivity : ComponentActivity() {
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
-                viewModel.startScan()
+                viewModel.refreshScanResults()
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 // TODO: Show a dialog explaining why the permission is needed
@@ -73,23 +75,35 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
+fun MainScreen(viewModel: MainViewModel) {
     val scanResults by viewModel.scanResults.collectAsState()
     val context = LocalContext.current
-    val scanInitiated by viewModel.scanInitiated.collectAsState()
 
-    LaunchedEffect(scanInitiated) {
-        if (scanInitiated == false) {
-            Toast.makeText(context, "Scan failed to start. Please try again later.", Toast.LENGTH_SHORT).show()
+    Column(modifier = Modifier.fillMaxSize()) {
+        Button(
+            onClick = { viewModel.refreshScanResults() },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Text("Refresh Networks")
         }
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Button(onClick = onScanClick) {
-            Text("Scan Networks")
+        LazyColumn {
+            items(scanResults) { result ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .clickable {
+                            val intent = Intent(context, CrackActivity::class.java)
+                            intent.putExtra("ssid", result.SSID)
+                            intent.putExtra("detail", result.capabilities)
+                            context.startActivity(intent)
+                        }
+                ) {
+                    Text(text = result.SSID)
+                }
+            }
         }
     }
 }
