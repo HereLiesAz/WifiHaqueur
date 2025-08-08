@@ -1,0 +1,409 @@
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    package=\"com.hereliesaz.wifihacker\">\r\n\r\n    <uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"></uses-permission>\r\n    <uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"></uses-permission>\r\n    <uses-permission android:name=\"android.permission.INTERNET\"></uses-permission>\r\n    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"></uses-permission>\r\n    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:supportsRtl=\"true\">\r\n        <activity\r\n            android:name=\".SplashActivity\"\r\n            android:screenOrientation=\"portrait\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n\r\n        <activity\r\n            android:name=\".CrackActivity\"\r\n            android:screenOrientation=\"portrait\"></activity>\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:screenOrientation=\"portrait\"></activity>\r\n        <activity\r\n            android:name=\".InstructionsActivity\"\r\n            android:screenOrientation=\"portrait\"></activity>\r\n    </application>\r\n\r\n</manifest>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/app/src/main/AndroidManifest.xml	(date 1754622550783)
+@@ -2,10 +2,10 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="com.hereliesaz.wifihacker">
+ 
+-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
+-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
++    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
++    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
++    <uses-permission android:name="android.permission.INTERNET" />
++    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+ 
+@@ -13,10 +13,11 @@
+         android:allowBackup="true"
+         android:icon="@mipmap/ic_launcher"
+         android:label="@string/app_name"
+-        android:supportsRtl="true">
++        android:supportsRtl="true"
++        android:android.theme="@style/AppTheme">
+         <activity
+             android:name=".SplashActivity"
+-            android:screenOrientation="portrait">
++            android:exported="true"         >
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN" />
+ 
+@@ -25,14 +26,11 @@
+         </activity>
+ 
+         <activity
+-            android:name=".CrackActivity"
+-            android:screenOrientation="portrait"></activity>
++            android:name=".CrackActivity"/>
+         <activity
+-            android:name=".MainActivity"
+-            android:screenOrientation="portrait"></activity>
++            android:name=".MainActivity"/>
+         <activity
+-            android:name=".InstructionsActivity"
+-            android:screenOrientation="portrait"></activity>
++            android:name=".InstructionsActivity"/>
+     </application>
+ 
+ </manifest>
+Index: settings.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>pluginManagement {\r\n    repositories {\r\n        google()\r\n        mavenCentral()\r\n        gradlePluginPortal()\r\n    }\r\n}\r\ndependencyResolutionManagement {\r\n    repositories {\r\n        google()\r\n        mavenCentral()\r\n    }\r\n}\r\ninclude(\":app\")\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+--- a/settings.gradle.kts	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/settings.gradle.kts	(date 1754622559403)
+@@ -3,12 +3,19 @@
+         google()
+         mavenCentral()
+         gradlePluginPortal()
++        maven {
++            url = uri("https://jitpack.io")
++        }
+     }
+ }
+ dependencyResolutionManagement {
+     repositories {
+         google()
+         mavenCentral()
++        gradlePluginPortal()
++        maven {
++            url = uri("https://jitpack.io")
++        }
+     }
+ }
+ include(":app")
+Index: gradle/wrapper/gradle-wrapper.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>distributionBase=GRADLE_USER_HOME\r\ndistributionPath=wrapper/dists\r\nzipStoreBase=GRADLE_USER_HOME\r\nzipStorePath=wrapper/dists\r\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-8.7-all.zip\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/gradle/wrapper/gradle-wrapper.properties b/gradle/wrapper/gradle-wrapper.properties
+--- a/gradle/wrapper/gradle-wrapper.properties	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/gradle/wrapper/gradle-wrapper.properties	(date 1754622559464)
+@@ -1,5 +1,6 @@
++#Thu Aug 07 14:08:01 CDT 2025
+ distributionBase=GRADLE_USER_HOME
+ distributionPath=wrapper/dists
++distributionUrl=https\://services.gradle.org/distributions/gradle-9.0.0-bin.zip
+ zipStoreBase=GRADLE_USER_HOME
+ zipStorePath=wrapper/dists
+-distributionUrl=https\://services.gradle.org/distributions/gradle-8.7-all.zip
+Index: app/src/main/java/com/hereliesaz/wifihacker/InstructionsActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.hereliesaz.wifihacker\r\n\r\nimport android.os.Bundle\r\nimport androidx.activity.ComponentActivity\r\nimport androidx.activity.compose.setContent\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.unit.dp\r\nimport com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme\r\n\r\nclass InstructionsActivity : ComponentActivity() {\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        setContent {\r\n            WifiHackerTheme {\r\n                InstructionsScreen()\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nfun InstructionsScreen() {\r\n    Column(modifier = Modifier.padding(16.dp)) {\r\n        Text(\"This is the first application of its kind that I have seen. There is no need to root the device. The app will try 10,000 most common passwords on the access point and will let you know if it is able to crack the password. Here are a few more instructions.\\\\n\\\\n1. Try turning wifi on before cracking process begins.\\\\n2.The signal strength of the access point should be good.\\\\n3.Try cracking passwords of access points which have WPA/WPA2/WEP security.\\\\n4.Contact fsecurify@gmail.com in case of any problem. We are always here to help.\")\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/hereliesaz/wifihacker/InstructionsActivity.kt b/app/src/main/java/com/hereliesaz/wifihacker/InstructionsActivity.kt
+--- a/app/src/main/java/com/hereliesaz/wifihacker/InstructionsActivity.kt	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/app/src/main/java/com/hereliesaz/wifihacker/InstructionsActivity.kt	(date 1754622550558)
+@@ -15,6 +15,7 @@
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
+         setContent {
++            InstructionsScreen()
+             WifiHackerTheme {
+                 InstructionsScreen()
+             }
+Index: build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// Top-level build file where you can add configuration options common to all sub-projects/modules.\r\nplugins {\r\n    id(\"com.android.application\") version \"8.5.0\" apply false\r\n    id(\"org.jetbrains.kotlin.android\") version \"2.0.0\" apply false\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/build.gradle.kts b/build.gradle.kts
+--- a/build.gradle.kts	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/build.gradle.kts	(date 1754622559530)
+@@ -1,5 +1,6 @@
++
+ // Top-level build file where you can add configuration options common to all sub-projects/modules.
+ plugins {
+-    id("com.android.application") version "8.5.0" apply false
+-    id("org.jetbrains.kotlin.android") version "2.0.0" apply false
++    id("com.android.application") version "8.12.0" apply false
++    id("org.jetbrains.kotlin.android") version "2.2.0" apply false
+ }
+Index: gradle.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># Project-wide Gradle settings.\r\n# IDE (e.g. Android Studio) users:\r\n# Gradle settings configured through the IDE *will override*\r\n# any settings specified in this file.\r\n# For more details on how to configure your build environment visit\r\n# http://www.gradle.org/docs/current/userguide/build_environment.html\r\n# Specifies the JVM arguments used for the daemon process.\r\n# The setting is particularly useful for tweaking memory settings.\r\n# Default value: -Xmx10248m -XX:MaxPermSize=256m\r\n# org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8\r\n# When configured, Gradle will run in incubating parallel mode.\r\n# This option should only be used with decoupled projects. More details, visit\r\n# http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects\r\n# org.gradle.parallel=true
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/gradle.properties b/gradle.properties
+--- a/gradle.properties	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/gradle.properties	(date 1754622559624)
+@@ -1,14 +1,15 @@
+-# Project-wide Gradle settings.
+-# IDE (e.g. Android Studio) users:
+-# Gradle settings configured through the IDE *will override*
+-# any settings specified in this file.
+-# For more details on how to configure your build environment visit
++## For more details on how to configure your build environment visit
+ # http://www.gradle.org/docs/current/userguide/build_environment.html
++#
+ # Specifies the JVM arguments used for the daemon process.
+ # The setting is particularly useful for tweaking memory settings.
+-# Default value: -Xmx10248m -XX:MaxPermSize=256m
++# Default value: -Xmx1024m -XX:MaxPermSize=256m
+ # org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
++#
+ # When configured, Gradle will run in incubating parallel mode.
+-# This option should only be used with decoupled projects. More details, visit
+-# http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects
+-# org.gradle.parallel=true
+\ No newline at end of file
++# This option should only be used with decoupled projects. For more details, visit
++# https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects
++# org.gradle.parallel=true
++#Thu Aug 07 16:24:03 CDT 2025
++android.enableJetifier=true
++android.useAndroidX=true
+Index: app/src/AndroidManifest.xml
+===================================================================
+diff --git a/app/src/AndroidManifest.xml b/app/src/AndroidManifest.xml
+deleted file mode 100644
+--- a/app/src/AndroidManifest.xml	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ /dev/null	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
+@@ -1,34 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+-    package="com.hereliesaz.wifihacker">
+-
+-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
+-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+-
+-    <application
+-        android:allowBackup="true"
+-        android:icon="@mipmap/ic_launcher"
+-        android:label="@string/app_name"
+-        android:supportsRtl="true"
+-        android:theme="@style/AppTheme">
+-        <activity android:name=".SplashActivity" android:screenOrientation="portrait">
+-            <intent-filter>
+-                <action android:name="android.intent.action.MAIN" />
+-
+-                <category android:name="android.intent.category.LAUNCHER" />
+-            </intent-filter>
+-        </activity>
+-
+-        <receiver android:name=".CrackActivity$myBroadcast" >
+-            <intent-filter android:priority="100000">
+-                <action android:name="android.net.wifi.STATE_CHANGE" />
+-            </intent-filter>
+-        </receiver>
+-
+-        <activity android:name=".CrackActivity" android:screenOrientation="portrait"></activity>
+-        <activity android:name=".MainActivity" android:screenOrientation="portrait"></activity>
+-        <activity android:name=".InstructionsClass" android:screenOrientation="portrait"></activity>
+-    </application>
+-
+-</manifest>
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+new file mode 100644
+--- /dev/null	(date 1754622559840)
++++ b/.idea/deploymentTargetSelector.xml	(date 1754622559840)
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="deploymentTargetSelector">
++    <selectionStates>
++      <SelectionState runConfigName="app">
++        <option name="selectionMode" value="DROPDOWN" />
++      </SelectionState>
++    </selectionStates>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/inspectionProfiles/Project_Default.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/inspectionProfiles/Project_Default.xml b/.idea/inspectionProfiles/Project_Default.xml
+new file mode 100644
+--- /dev/null	(date 1754622560103)
++++ b/.idea/inspectionProfiles/Project_Default.xml	(date 1754622560103)
+@@ -0,0 +1,50 @@
++<component name="InspectionProjectProfileManager">
++  <profile version="1.0">
++    <option name="myName" value="Project Default" />
++    <inspection_tool class="ComposePreviewDimensionRespectsLimit" enabled="true" level="WARNING" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="ComposePreviewMustBeTopLevelFunction" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="ComposePreviewNeedsComposableAnnotation" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="ComposePreviewNotSupportedInUnitTestFiles" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="GlancePreviewDimensionRespectsLimit" enabled="true" level="WARNING" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="GlancePreviewMustBeTopLevelFunction" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="GlancePreviewNeedsComposableAnnotation" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="GlancePreviewNotSupportedInUnitTestFiles" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="PreviewAnnotationInFunctionWithParameters" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="PreviewApiLevelMustBeValid" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="PreviewDeviceShouldUseNewSpec" enabled="true" level="WEAK WARNING" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="PreviewFontScaleMustBeGreaterThanZero" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="PreviewMultipleParameterProviders" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="PreviewParameterProviderOnFirstParameter" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++    <inspection_tool class="PreviewPickerAnnotation" enabled="true" level="ERROR" enabled_by_default="true">
++      <option name="composableFile" value="true" />
++    </inspection_tool>
++  </profile>
++</component>
+\ No newline at end of file
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"GradleSettings\">\r\n    <option name=\"linkedExternalProjectsSettings\">\r\n      <GradleProjectSettings>\r\n        <option name=\"testRunner\" value=\"CHOOSE_PER_TEST\" />\r\n        <option name=\"externalProjectPath\" value=\"$PROJECT_DIR$\" />\r\n        <option name=\"gradleJvm\" value=\"#GRADLE_LOCAL_JAVA_HOME\" />\r\n        <option name=\"modules\">\r\n          <set>\r\n            <option value=\"$PROJECT_DIR$\" />\r\n            <option value=\"$PROJECT_DIR$/app\" />\r\n          </set>\r\n        </option>\r\n      </GradleProjectSettings>\r\n    </option>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/gradle.xml b/.idea/gradle.xml
+--- a/.idea/gradle.xml	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/.idea/gradle.xml	(date 1754622559914)
+@@ -1,5 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="GradleMigrationSettings" migrationVersion="1" />
+   <component name="GradleSettings">
+     <option name="linkedExternalProjectsSettings">
+       <GradleProjectSettings>
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <bytecodeTargetLevel target=\"1.6\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/.idea/compiler.xml	(date 1754622560002)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="CompilerConfiguration">
+-    <bytecodeTargetLevel target="1.6" />
++    <bytecodeTargetLevel target="21" />
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_1_6\" project-jdk-name=\"jbr-21\" project-jdk-type=\"JavaSDK\" />\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision aaeb3ecb5dfd027d0176fc6b4b2a9778811afcc3)
++++ b/.idea/misc.xml	(date 1754622560065)
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="ExternalStorageConfigurationManager" enabled="true" />
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" project-jdk-name="jbr-21" project-jdk-type="JavaSDK" />
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="jbr-21" project-jdk-type="JavaSDK" />
+ </project>
+\ No newline at end of file
+Index: .idea/appInsightsSettings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/appInsightsSettings.xml b/.idea/appInsightsSettings.xml
+new file mode 100644
+--- /dev/null	(date 1754622559707)
++++ b/.idea/appInsightsSettings.xml	(date 1754622559707)
+@@ -0,0 +1,26 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="AppInsightsSettings">
++    <option name="tabSettings">
++      <map>
++        <entry key="Firebase Crashlytics">
++          <value>
++            <InsightsFilterSettings>
++              <option name="connection">
++                <ConnectionSetting>
++                  <option name="appId" value="PLACEHOLDER" />
++                  <option name="mobileSdkAppId" value="" />
++                  <option name="projectId" value="" />
++                  <option name="projectNumber" value="" />
++                </ConnectionSetting>
++              </option>
++              <option name="signal" value="SIGNAL_UNSPECIFIED" />
++              <option name="timeIntervalDays" value="THIRTY_DAYS" />
++              <option name="visibilityType" value="ALL" />
++            </InsightsFilterSettings>
++          </value>
++        </entry>
++      </map>
++    </option>
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.kt b/app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.kt
+new file mode 100644
+--- /dev/null	(date 1754622559749)
++++ b/app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.kt	(date 1754622559749)
+@@ -0,0 +1,7 @@
++package com.hereliesaz.wifihacker
++
++import android.app.Activity
++
++class InstructionsClass : Activity() {
++
++}
