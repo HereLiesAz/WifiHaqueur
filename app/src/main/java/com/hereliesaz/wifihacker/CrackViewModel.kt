@@ -98,7 +98,7 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
-    private suspend fun downloadDictionaries(): List<String> {
+    internal suspend fun downloadDictionaries(): List<String> {
         val passwords = mutableListOf<String>()
         val urls = listOf(
             "https://drive.google.com/file/d/12ohN_3CktkNUGlDwHP-hzawpaqTEaMem/view?usp=drive_link",

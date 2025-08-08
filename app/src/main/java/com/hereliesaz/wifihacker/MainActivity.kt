@@ -1,7 +1,7 @@
 package com.hereliesaz.wifihacker
 
 import android.Manifest
-import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,23 +10,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
 
 class MainActivity : ComponentActivity() {
@@ -43,6 +39,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             WifiHackerTheme {
                 MainScreen(
@@ -74,16 +71,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview
-@Composable
-fun MainScreenPreview() {
-    val context = LocalContext.current
-    val application = context.applicationContext as Application
-    val viewModel = MainViewModel(application = application)
-    MainScreen(viewModel = viewModel, onScanClick = {})
-}
-
-
 @Composable
 fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
     val scanResults by viewModel.scanResults.collectAsState()
@@ -96,25 +83,12 @@ fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
         }
     }
 
-    Column {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
         Button(onClick = onScanClick) {
             Text("Scan Networks")
-        }
-        LazyColumn {
-            items(scanResults) { result ->
-                Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable {
-                            val intent = Intent(context, CrackActivity::class.java)
-                            intent.putExtra("ssid", result.SSID)
-                            intent.putExtra("detail", result.capabilities)
-                            context.startActivity(intent)
-                        }
-                ) {
-                    Text(text = result.SSID)
-                }
-            }
         }
     }
 }
