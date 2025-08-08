@@ -1,0 +1,19 @@
+Index: .gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>*.iml\r\n.gradle\r\n/local.properties\r\n/.idea/workspace.xml\r\n/.idea/libraries\r\n.DS_Store\r\n/build\r\n/captures\r\n/app/src/main/assets/WPA-password-dictionary
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.gitignore b/.gitignore
+--- a/.gitignore	(revision 2d8dd4db0edd49998652a733ee013d2a5e994b00)
++++ b/.gitignore	(date 1754630389216)
+@@ -6,4 +6,5 @@
+ .DS_Store
+ /build
+ /captures
+-/app/src/main/assets/WPA-password-dictionary
+\ No newline at end of file
++/app/src/main/assets/WPA-password-dictionary
++*.hprof
+\ No newline at end of file

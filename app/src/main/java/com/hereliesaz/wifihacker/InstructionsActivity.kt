@@ -15,6 +15,7 @@ class InstructionsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            InstructionsScreen()
             WifiHackerTheme {
                 InstructionsScreen()
             }

