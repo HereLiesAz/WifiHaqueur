@@ -16,6 +16,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _scanResults = MutableStateFlow<List<ScanResult>>(emptyList())
     val scanResults: StateFlow<List<ScanResult>> = _scanResults
 
+    private val _scanInitiated = MutableStateFlow<Boolean?>(null)
+    val scanInitiated: StateFlow<Boolean?> = _scanInitiated
+
     private val wifiManager =
         application.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
@@ -52,8 +55,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // The startScan() method is deprecated for apps targeting API 33+.
         // Runtime permission for ACCESS_FINE_LOCATION must be handled in the UI.
         @Suppress("DEPRECATION")
-        val scanInitiated = wifiManager.startScan()
-        if (!scanInitiated) {
+        val scanInitiatedResult = wifiManager.startScan()
+        _scanInitiated.value = scanInitiatedResult
+        if (!scanInitiatedResult) {
             // Scan failed to start, fetch last known results.
             fetchScanResults()
         }

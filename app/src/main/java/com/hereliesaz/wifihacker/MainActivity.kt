@@ -10,22 +10,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
 
 class MainActivity : ComponentActivity() {
@@ -42,13 +40,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
-            MainScreen(
-                viewModel = viewModel,
-                onScanClick = {
-                    requestLocationPermission()
-                }
-            )
+            WifiHackerTheme {
+                MainScreen(
+                    viewModel = viewModel,
+                    onScanClick = {
+                        requestLocationPermission()
+                    }
+                )
+            }
         }
     }
 
@@ -75,33 +76,20 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
     val scanResults by viewModel.scanResults.collectAsState()
     val context = LocalContext.current
+    val scanInitiated by viewModel.scanInitiated.collectAsState()
 
-    // Automatically scan when the screen is first displayed, if permission is already granted.
-    LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            viewModel.startScan()
+    LaunchedEffect(scanInitiated) {
+        if (scanInitiated == false) {
+            Toast.makeText(context, "Scan failed to start. Please try again later.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    Column {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
         Button(onClick = onScanClick) {
             Text("Scan Networks")
-        }
-        LazyColumn {
-            items(scanResults) { result ->
-                Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable {
-                            val intent = Intent(context, CrackActivity::class.java)
-                            intent.putExtra("ssid", result.SSID)
-                            intent.putExtra("detail", result.capabilities)
-                            context.startActivity(intent)
-                        }
-                ) {
-                    Text(text = result.SSID)
-                }
-            }
         }
     }
 }
