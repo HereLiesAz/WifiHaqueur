@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -114,6 +115,7 @@ fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
             Button(
                 onClick = onScanClick,
                 enabled = !isScanning && !isAttacking
+                enabled = !isScanning
             ) {
                 Text("Scan Networks")
             }
@@ -135,6 +137,12 @@ fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
                             result = result,
                             isSelected = result.BSSID == selectedNetwork?.BSSID,
                             onNetworkSelected = { viewModel.selectNetwork(it) }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(scanResults) { result ->
+                        Text(
+                            text = result.SSID,
+                            modifier = Modifier.padding(8.dp)
                         )
                         Divider()
                     }
@@ -228,5 +236,6 @@ fun RadialProgressBar(
             text = "$passwordsTried / $totalPasswords",
             style = MaterialTheme.typography.headlineSmall
         )
+        }
     }
 }

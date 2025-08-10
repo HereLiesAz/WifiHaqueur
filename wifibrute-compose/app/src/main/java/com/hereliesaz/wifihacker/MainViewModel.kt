@@ -20,6 +20,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -27,6 +30,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         application.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val connectivityManager =
         application.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+
 
     private val _scanResults = MutableStateFlow<List<ScanResult>>(emptyList())
     val scanResults: StateFlow<List<ScanResult>> = _scanResults
@@ -57,6 +61,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _totalPasswords = MutableStateFlow(100000000L)
     val totalPasswords: StateFlow<Long> = _totalPasswords
+
 
     @Suppress("DEPRECATION")
     private val wifiScanReceiver = object : BroadcastReceiver() {
@@ -186,6 +191,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             wifiManager.connectionInfo.networkId == netId
         }
     }
+
 
     init {
         val intentFilter = IntentFilter()
