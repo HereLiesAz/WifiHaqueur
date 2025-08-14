@@ -1,10 +1,11 @@
 package com.hereliesaz.wifihacker
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +27,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -112,6 +117,128 @@ fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
         }
     }
 
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(
+                onClick = onScanClick,
+                enabled = !isScanning && !isAttacking
+            ) {
+                Text("Scan Networks")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (isScanning) {
+                CircularProgressIndicator()
+            } else if (isAttacking) {
+                RadialProgressBar(
+                    progress = (passwordsTried.toFloat() / totalPasswords.toFloat()),
+                    passwordsTried = passwordsTried,
+                    totalPasswords = totalPasswords
+                )
+            } else {
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(scanResults) { result ->
+                        NetworkListItem(
+                            result = result,
+                            isSelected = result.BSSID == selectedNetwork?.BSSID,
+                            onNetworkSelected = { viewModel.selectNetwork(it) }
+                        )
+                        Divider()
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { viewModel.startAttack() },
+                enabled = selectedNetwork != null && !isAttacking
+            ) {
+                Text("Start Attack")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LogView(logMessages = logMessages)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Disclaimer: This app is for educational purposes only. Do not use it for illegal activities.",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun NetworkListItem(
+    result: ScanResult,
+    isSelected: Boolean,
+    onNetworkSelected: (ScanResult) -> Unit
+) {
+    Text(
+        text = result.SSID,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onNetworkSelected(result) }
+            .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+            .padding(16.dp)
+    )
+}
+
+@Composable
+fun LogView(logMessages: List<String>) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .border(1.dp, MaterialTheme.colorScheme.primary)
+    ) {
+        items(logMessages) { message ->
+            Text(
+                text = message,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun RadialProgressBar(
+    progress: Float,
+    passwordsTried: Long,
+    totalPasswords: Long
+) {
+    Box(contentAlignment = Alignment.Center) {
+        Canvas(
+            modifier = Modifier
+                .size(200.dp)
+        ) {
+            drawArc(
+                color = Color.LightGray,
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = 8.dp.toPx())
+            )
+            drawArc(
+                color = Color.Green,
+                startAngle = -90f,
+                sweepAngle = 360 * progress,
+                useCenter = false,
+                style = Stroke(width = 8.dp.toPx())
+            )
     Scaffold(
         topBar = {
             TopAppBar(
