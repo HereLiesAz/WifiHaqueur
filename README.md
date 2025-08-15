@@ -1,12 +1,10 @@
-# Wifi Haqueur - The Ethical WiFi Hacking Toolkit 🕵️‍♂️
+# Wifi Haqueur - The Unethical but Mostly Ineffective WiFi Brutish Tool for Haqueurs 
 
-**"To understand a hacker, you must think like one."**
+**"To understand a haqueur, go break something. And then wonder why it's broken."**
 
-Wifi Haqueur is a powerful Android application for WiFi network analysis and password recovery, based on the original `WiFiHacker` by fsecurify. This toolkit is designed for security enthusiasts, network administrators, and anyone who wants to get a deeper understanding of their WiFi networks.
+Wifi Haqueur is a blunt instrument you can whack a router with using the force of a brute. Based on the original `WiFiHacker` by fsecurify, this tool designed for upscale scrpt kiddies and the secretarially lazy.
 
-**Disclaimer:** This application is intended for educational and ethical purposes only. Do not use this tool for any illegal activities. The developers are not responsible for any misuse of this application.
-
-![Wifi Haqueur in action](1280.jpg?raw=true "Wifi Haqueur")
+**Disclaimer:** This application is definitely not intended for educational or ethical purposes, but we will definitely now say that that's not true and that yes, it is. So, be a good wee one and do not winky face use this tool for any illegal activities nudge nudge. Even if you do, I'm not responsible for your bad behavior. FOR SHAME. 
 
 ## 🚀 Features
 
@@ -17,7 +15,9 @@ Wifi Haqueur is a powerful Android application for WiFi network analysis and pas
 
 ## 🛠️ Installation
 
-To build the application from source, you will need Android Studio.
+Download the latest release. 
+
+Or, to build the app yourself to get the same result:
 
 1.  Clone the repository:
     ```bash
@@ -28,4 +28,4 @@ To build the application from source, you will need Android Studio.
 
 ## 🙏 Credits
 
-This project is a fork and a reimagination of the original [WiFiHacker](https://github.com/fsecurify/WiFiHacker) by fsecurify. All credit for the original concept and core functionality goes to them. We have revived and updated the project to provide a better user experience and more features.
+This project is a fork and an unimaginitive reimagination of the original [WiFiHacker](https://github.com/fsecurify/WiFiHacker) by fsecurify. All credit for the original concept and core functionality is theirs. I revived and updated the project for longevity.
