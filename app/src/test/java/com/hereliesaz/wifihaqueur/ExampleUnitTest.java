@@ -1,8 +1,8 @@
-package com.hereliesaz.wifihacker;
-
-import org.junit.Test;
+package com.hereliesaz.wifihaqueur;
 
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 /**
  * To work on unit tests, switch the Test Artifact in the Build Variants view.

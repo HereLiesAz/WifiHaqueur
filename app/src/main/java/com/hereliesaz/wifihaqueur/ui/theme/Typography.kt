@@ -1,4 +1,4 @@
-package com.hereliesaz.wifihacker.ui.theme
+package com.hereliesaz.wifihaqueur.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

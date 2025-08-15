@@ -1,4 +1,4 @@
-package com.hereliesaz.wifihacker
+package com.hereliesaz.wifihaqueur
 
 import android.app.Application
 import android.content.Context

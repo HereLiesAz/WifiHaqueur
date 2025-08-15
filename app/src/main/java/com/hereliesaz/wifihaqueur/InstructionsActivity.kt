@@ -1,4 +1,4 @@
-package com.hereliesaz.wifihacker
+package com.hereliesaz.wifihaqueur
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,14 +9,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
+import com.hereliesaz.wifihaqueur.ui.theme.WifiHaqueurTheme
 
 class InstructionsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             InstructionsScreen()
-            WifiHackerTheme {
+            WifiHaqueurTheme {
                 InstructionsScreen()
             }
         }

@@ -1,4 +1,4 @@
-package com.hereliesaz.wifihacker
+package com.hereliesaz.wifihaqueur
 
 import android.Manifest
 import android.app.Application
@@ -7,13 +7,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.wifi.ScanResult
+import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
+import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -26,7 +33,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val wifiManager =
         application.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val connectivityManager =
-        application.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private val _scanResults = MutableStateFlow<List<ScanResult>>(emptyList())
     val scanResults: StateFlow<List<ScanResult>> = _scanResults
@@ -4892,19 +4899,19 @@ accurate
         val selectedSsid = _selectedNetwork.value?.SSID ?: return false
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val specifier = android.net.wifi.WifiNetworkSpecifier.Builder()
+            val specifier = WifiNetworkSpecifier.Builder()
                 .setSsid(selectedSsid)
                 .setWpa2Passphrase(password)
                 .build()
 
-            val request = android.net.NetworkRequest.Builder()
-                .addTransportType(android.net.NetworkCapabilities.TRANSPORT_WIFI)
+            val request = NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .setNetworkSpecifier(specifier)
                 .build()
 
             suspendCancellableCoroutine { continuation ->
-                val networkCallback = object : android.net.ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: android.net.Network) {
+                val networkCallback = object : ConnectivityManager.NetworkCallback() {
+                    override fun onAvailable(network: Network) {
                         super.onAvailable(network)
                         connectivityManager.bindProcessToNetwork(network)
                         if (continuation.isActive) {
@@ -4925,7 +4932,7 @@ accurate
             }
         } else {
             @Suppress("DEPRECATION")
-            val wifiConfig = android.net.wifi.WifiConfiguration()
+            val wifiConfig = WifiConfiguration()
             wifiConfig.SSID = "\"$selectedSsid\""
             wifiConfig.preSharedKey = "\"$password\""
             val netId = wifiManager.addNetwork(wifiConfig)
@@ -4934,7 +4941,7 @@ accurate
             wifiManager.reconnect()
             // This is not a reliable way to check for success on older versions,
             // but it's the best we can do with the deprecated API.
-            kotlinx.coroutines.delay(5000) // Wait for connection
+            delay(5000) // Wait for connection
             wifiManager.connectionInfo.networkId == netId
         }
     }

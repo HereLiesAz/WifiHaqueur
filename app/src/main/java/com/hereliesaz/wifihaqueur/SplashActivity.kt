@@ -1,4 +1,4 @@
-package com.hereliesaz.wifihacker
+package com.hereliesaz.wifihaqueur
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,14 +12,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
+import com.hereliesaz.wifihaqueur.ui.theme.WifiHaqueurTheme
 import kotlinx.coroutines.delay
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WifiHackerTheme {
+            WifiHaqueurTheme {
                 SplashScreen {
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
