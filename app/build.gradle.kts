@@ -5,20 +5,15 @@ plugins {
 }
 
 android {
-    signingConfigs {
-        getByName("debug") {
-            storeFile = file("G:\\My Drive\\az_apk_keystore.jks")
-        }
-    }
     namespace = "com.hereliesaz.wifihaqueur"
     compileSdk = 36
 
     defaultConfig {
         applicationId = "com.hereliesaz.wifihaqueur"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.2"
+        versionCode = 1
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
