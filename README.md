@@ -28,4 +28,4 @@ Or, to build the app yourself to get the same result:
 
 ## 🙏 Credits
 
-This project is a fork and an unimaginitive reimagination of the original [WiFiHacker](https://github.com/fsecurify/WiFiHacker) by fsecurify. All credit for the original concept and core functionality is theirs. I revived and updated the project for longevity.
+This project is a fork and an unimaginative reimagination of the original [WiFiHacker](https://github.com/fsecurify/WiFiHacker) by fsecurify. All credit for the original concept and core functionality is theirs. I revived and updated the project for longevity.

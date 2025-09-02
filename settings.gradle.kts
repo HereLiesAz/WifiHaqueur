@@ -20,3 +20,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "WifiHaqueur"
 include(":app")
+include(":NetworkScanner")
+include(":wifibrute-compose")
