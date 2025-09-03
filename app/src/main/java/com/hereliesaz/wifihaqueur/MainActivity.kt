@@ -9,10 +9,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
+import androidx.compose.material3.DrawerValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -30,9 +33,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -40,12 +46,14 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,8 +63,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import com.hereliesaz.wifihaqueur.ui.components.AzNavRail
+import com.hereliesaz.wifihaqueur.ui.components.DictionarySelectionDialog
 import com.hereliesaz.wifihaqueur.ui.theme.Primary
 import com.hereliesaz.wifihaqueur.ui.theme.WifiHaqueurTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -74,6 +85,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    private val pickFileLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
+                // TODO: Handle the selected file URI
+                Toast.makeText(this, "File selected: $uri", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -83,6 +102,9 @@ class MainActivity : ComponentActivity() {
                     viewModel = viewModel,
                     onScanClick = {
                         requestLocationPermission()
+                    },
+                    onPickFile = {
+                        pickFileLauncher.launch("*/*")
                     }
                 )
             }
@@ -114,7 +136,11 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
+fun MainScreen(
+    viewModel: MainViewModel,
+    onScanClick: () -> Unit,
+    onPickFile: () -> Unit
+) {
     val scanResults by viewModel.scanResults.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
     val context = LocalContext.current
@@ -124,6 +150,24 @@ fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
     val isAttacking by viewModel.isAttacking.collectAsState()
     val passwordsTried by viewModel.passwordsTried.collectAsState()
     val totalPasswords by viewModel.totalPasswords.collectAsState()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    var showDictionaryDialog by remember { mutableStateOf(false) }
+
+    if (showDictionaryDialog) {
+        DictionarySelectionDialog(
+            onDismiss = { showDictionaryDialog = false },
+            onDictionarySelected = { dictionary ->
+                // TODO: Implement download logic
+                Toast.makeText(context, "Selected: ${dictionary.name}", Toast.LENGTH_SHORT).show()
+                showDictionaryDialog = false
+            },
+            onPickFile = {
+                onPickFile()
+                showDictionaryDialog = false
+            }
+        )
+    }
 
     LaunchedEffect(scanThrottled) {
         if (scanThrottled) {
@@ -135,139 +179,162 @@ fun MainScreen(viewModel: MainViewModel, onScanClick: () -> Unit) {
         }
     }
 
-    Scaffold(
-        topBar = { // This is a Composable lambda where you define your top app bar content
-            TopAppBar(
-                title = { // The title parameter is also a Composable lambda
-                    Image(
-                        painter = painterResource(id = R.mipmap.ic_launcher),
-                        contentDescription = "App Icon",
-                        modifier = Modifier.size(48.dp) // Adjust size as needed
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                AzNavRail(
+                    onScanNetworks = {
+                        onScanClick()
+                        scope.launch { drawerState.close() }
+                    },
+                    onStartAttack = {
+                        viewModel.startAttack()
+                        scope.launch { drawerState.close() }
+                    },
+                    onSelectDictionary = {
+                        showDictionaryDialog = true
+                        scope.launch { drawerState.close() }
+                    }
                 )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding) // Apply padding from Scaffold
-                .padding(horizontal = 16.dp), // Apply horizontal padding to the main column
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val selectedIndex = remember { mutableIntStateOf(0) }
-            val logListState = rememberLazyListState() // Remember LazyListState for the log
-
-            // Dynamic Content (Scan results, progress) - fills space above buttons
-            // This will take all available space above the buttons and log
-            Box( // Use Box to center fixed-size composables like CircularProgressIndicator/RadialProgressBar
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f), // Takes the upper flexible space
-                contentAlignment = Alignment.Center // Centers content within this Box
-            ) {
-                if (isScanning) {
-                    CircularProgressIndicator()
-                } else if (isAttacking) {
-                    RadialProgressBar(
-                        progress = (passwordsTried.toFloat() / totalPasswords.toFloat()),
-                        passwordsTried = passwordsTried,
-                        totalPasswords = totalPasswords
+            }
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { },
+                    navigationIcon = {
+                        Image(
+                            painter = painterResource(id = R.mipmap.ic_launcher),
+                            contentDescription = "App Icon",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clickable { scope.launch { drawerState.open() } }
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
                     )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(), // Fill its parent Box
-                        horizontalAlignment = Alignment.CenterHorizontally // Center items if they are smaller than max width
-                    ) {
-                        items(scanResults) { result ->
-                            NetworkListItem(
-                                result = result,
-                                isSelected = result.BSSID == selectedNetwork?.BSSID,
-                                onNetworkSelected = { viewModel.selectNetwork(it) }
-                            )
-                            HorizontalDivider(Modifier, DividerDefaults.Thickness, color = Primary)
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Apply padding from Scaffold
+                    .padding(horizontal = 16.dp), // Apply horizontal padding to the main column
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val selectedIndex = remember { mutableIntStateOf(0) }
+                val logListState = rememberLazyListState() // Remember LazyListState for the log
+
+                // Dynamic Content (Scan results, progress) - fills space above buttons
+                // This will take all available space above the buttons and log
+                Box( // Use Box to center fixed-size composables like CircularProgressIndicator/RadialProgressBar
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f), // Takes the upper flexible space
+                    contentAlignment = Alignment.Center // Centers content within this Box
+                ) {
+                    if (isScanning) {
+                        CircularProgressIndicator()
+                    } else if (isAttacking) {
+                        RadialProgressBar(
+                            progress = (passwordsTried.toFloat() / totalPasswords.toFloat()),
+                            passwordsTried = passwordsTried,
+                            totalPasswords = totalPasswords
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(), // Fill its parent Box
+                            horizontalAlignment = Alignment.CenterHorizontally // Center items if they are smaller than max width
+                        ) {
+                            items(scanResults) { result ->
+                                NetworkListItem(
+                                    result = result,
+                                    isSelected = result.BSSID == selectedNetwork?.BSSID,
+                                    onNetworkSelected = { viewModel.selectNetwork(it) }
+                                )
+                                HorizontalDivider(Modifier, DividerDefaults.Thickness, color = Primary)
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp)) // Spacer between dynamic content and segmented buttons
+                Spacer(modifier = Modifier.height(16.dp)) // Spacer between dynamic content and segmented buttons
 
-            // Segmented Button Row - Placed directly above the log box
-            SingleChoiceSegmentedButtonRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        BorderStroke(1.dp, Primary),
-                        MaterialTheme.shapes.extraSmall
-                    ) // Primary border as requested
-            ) {
-                // Scan Networks Button
-                SegmentedButton(
-                    selected = selectedIndex.intValue == 0,
-                    onClick = { onScanClick(); selectedIndex.intValue = 0 },
-                    enabled = !isScanning && !isAttacking,
-                    modifier = Modifier.weight(0.5f),
-                    shape = MaterialTheme.shapes.extraSmall,
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = if (isScanning) MaterialTheme.colorScheme.primary else Color.Transparent, // Filled only if scanning
-                        inactiveContainerColor = Color.Transparent, // Always transparent when inactive
-                    )
+                // Segmented Button Row - Placed directly above the log box
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            BorderStroke(1.dp, Primary),
+                            MaterialTheme.shapes.extraSmall
+                        ) // Primary border as requested
                 ) {
-                    Text("Scan")
-                }
+                    // Scan Networks Button
+                    SegmentedButton(
+                        selected = selectedIndex.intValue == 0,
+                        onClick = { onScanClick(); selectedIndex.intValue = 0 },
+                        enabled = !isScanning && !isAttacking,
+                        modifier = Modifier.weight(0.5f),
+                        shape = MaterialTheme.shapes.extraSmall,
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = if (isScanning) MaterialTheme.colorScheme.primary else Color.Transparent, // Filled only if scanning
+                            inactiveContainerColor = Color.Transparent, // Always transparent when inactive
+                        )
+                    ) {
+                        Text("Scan")
+                    }
 
-                // Start Attack Button
-                SegmentedButton(
-                    selected = selectedIndex.intValue == 1,
-                    onClick = { viewModel.startAttack(); selectedIndex.intValue = 1 },
-                    enabled = selectedNetwork != null && !isAttacking,
-                    modifier = Modifier.weight(0.5f),
-                    shape = MaterialTheme.shapes.extraSmall,
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = if (isAttacking) MaterialTheme.colorScheme.primary else Color.Transparent, // Filled only if attacking
-                        activeContentColor = if (isAttacking) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        inactiveContainerColor = Color.Transparent, // Always transparent when inactive
-                    )
-                ) {
-                    Text("Attack")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp)) // Spacer between segmented buttons and log
-
-            // Log View - Fills the bottom half of the flexible space
-            LogView(
-                logMessages = logMessages,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f), // Takes the bottom half of the flexible space
-                listState = logListState // Pass the state to LogView
-            )
-
-            // LaunchedEffect for auto-scrolling log
-            LaunchedEffect(logMessages.size) { // Trigger when log messages change
-                if (logMessages.isNotEmpty()) {
-                    // Check if the user is already at the bottom or scrolled up
-                    val lastVisibleItemIndex =
-                        logListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
-                    val isAtBottom =
-                        lastVisibleItemIndex >= logMessages.lastIndex - 1 // Allow one item buffer
-
-                    if (!logListState.isScrollInProgress && (isAtBottom || logListState.firstVisibleItemIndex == 0)) {
-                        // If not scrolling and at bottom (or at top if list is small), scroll to latest
-                        logListState.animateScrollToItem(logMessages.lastIndex)
+                    // Start Attack Button
+                    SegmentedButton(
+                        selected = selectedIndex.intValue == 1,
+                        onClick = { viewModel.startAttack(); selectedIndex.intValue = 1 },
+                        enabled = selectedNetwork != null && !isAttacking,
+                        modifier = Modifier.weight(0.5f),
+                        shape = MaterialTheme.shapes.extraSmall,
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = if (isAttacking) MaterialTheme.colorScheme.primary else Color.Transparent, // Filled only if attacking
+                            activeContentColor = if (isAttacking) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            inactiveContainerColor = Color.Transparent, // Always transparent when inactive
+                        )
+                    ) {
+                        Text("Attack")
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp)) // Spacer between segmented buttons and log
+
+                // Log View - Fills the bottom half of the flexible space
+                LogView(
+                    logMessages = logMessages,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f), // Takes the bottom half of the flexible space
+                    listState = logListState // Pass the state to LogView
+                )
+
+                // LaunchedEffect for auto-scrolling log
+                LaunchedEffect(logMessages.size) { // Trigger when log messages change
+                    if (logMessages.isNotEmpty()) {
+                        // Check if the user is already at the bottom or scrolled up
+                        val lastVisibleItemIndex =
+                            logListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+                        val isAtBottom =
+                            lastVisibleItemIndex >= logMessages.lastIndex - 1 // Allow one item buffer
+
+                        if (!logListState.isScrollInProgress && (isAtBottom || logListState.firstVisibleItemIndex == 0)) {
+                            // If not scrolling and at bottom (or at top if list is small), scroll to latest
+                            logListState.animateScrollToItem(logMessages.lastIndex)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp)) // Spacer before disclaimer
             }
-
-            Spacer(modifier = Modifier.height(16.dp)) // Spacer before disclaimer
-
-
         }
     }
 }
