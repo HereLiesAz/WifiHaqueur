@@ -14,18 +14,17 @@ import androidx.compose.runtime.setValue
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.material3.DrawerValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -33,41 +32,34 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.hereliesaz.wifihaqueur.ui.components.AzNavRail
-import com.hereliesaz.wifihaqueur.ui.components.DictionarySelectionDialog
+import com.hereliesaz.wifihaqueur.ui.components.DictionarySelectionScreen
 import com.hereliesaz.wifihaqueur.ui.theme.Primary
 import com.hereliesaz.wifihaqueur.ui.theme.WifiHaqueurTheme
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -150,21 +142,18 @@ fun MainScreen(
     val isAttacking by viewModel.isAttacking.collectAsState()
     val passwordsTried by viewModel.passwordsTried.collectAsState()
     val totalPasswords by viewModel.totalPasswords.collectAsState()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    var showDictionaryDialog by remember { mutableStateOf(false) }
+    var showDictionaryScreen by remember { mutableStateOf(false) }
 
-    if (showDictionaryDialog) {
-        DictionarySelectionDialog(
-            onDismiss = { showDictionaryDialog = false },
+    if (showDictionaryScreen) {
+        DictionarySelectionScreen(
+            onDismiss = { showDictionaryScreen = false },
             onDictionarySelected = { dictionary ->
-                // TODO: Implement download logic
-                Toast.makeText(context, "Selected: ${dictionary.name}", Toast.LENGTH_SHORT).show()
-                showDictionaryDialog = false
+                viewModel.setDictionary(dictionary.name)
+                showDictionaryScreen = false
             },
             onPickFile = {
                 onPickFile()
-                showDictionaryDialog = false
+                showDictionaryScreen = false
             }
         )
     }
@@ -179,46 +168,14 @@ fun MainScreen(
         }
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                AzNavRail(
-                    onScanNetworks = {
-                        onScanClick()
-                        scope.launch { drawerState.close() }
-                    },
-                    onStartAttack = {
-                        viewModel.startAttack()
-                        scope.launch { drawerState.close() }
-                    },
-                    onSelectDictionary = {
-                        showDictionaryDialog = true
-                        scope.launch { drawerState.close() }
-                    }
-                )
-            }
-        }
-    ) {
+    Row(Modifier.fillMaxSize()) {
+        AzNavRail(
+            onScanNetworks = onScanClick,
+            onStartAttack = { viewModel.startAttack() },
+            onSelectDictionary = { showDictionaryScreen = true }
+        )
         Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { },
-                    navigationIcon = {
-                        Image(
-                            painter = painterResource(id = R.mipmap.ic_launcher),
-                            contentDescription = "App Icon",
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clickable { scope.launch { drawerState.open() } }
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent
-                    )
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = Color.Transparent,
         ) { innerPadding ->
             Column(
                 modifier = Modifier
