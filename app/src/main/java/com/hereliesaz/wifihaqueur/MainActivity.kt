@@ -58,7 +58,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import com.hereliesaz.wifihaqueur.ui.components.AzNavRail
+import com.hereliesaz.aznavrail.AzNavRail
 import com.hereliesaz.wifihaqueur.ui.components.DictionarySelectionScreen
 import com.hereliesaz.wifihaqueur.ui.theme.Primary
 import com.hereliesaz.wifihaqueur.ui.theme.WifiHaqueurTheme
@@ -172,9 +172,9 @@ fun MainScreen(
 
     Row(Modifier.fillMaxSize()) {
         AzNavRail {
-            azMenuItem(id = "scan", text = "Scan", icon = Icons.Filled.NetworkWifi, onClick = onScanClick)
-            azMenuItem(id = "attack", text = "Attack", icon = Icons.Default.Security, onClick = { viewModel.startAttack() })
-            azMenuItem(id = "dictionary", text = "Dictionary", icon = Icons.Default.FileOpen, onClick = { showDictionaryScreen = true })
+            azRailItem(id = "scan", text = "Scan", onClick = onScanClick)
+            azRailItem(id = "attack", text = "Attack", onClick = { viewModel.startAttack() })
+            azRailItem(id = "dictionary", text = "Dictionary", onClick = { showDictionaryScreen = true })
         }
         Scaffold(
             containerColor = Color.Transparent,
