@@ -9,8 +9,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -30,6 +28,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.NetworkWifi
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -169,11 +171,11 @@ fun MainScreen(
     }
 
     Row(Modifier.fillMaxSize()) {
-        AzNavRail(
-            onScanNetworks = onScanClick,
-            onStartAttack = { viewModel.startAttack() },
-            onSelectDictionary = { showDictionaryScreen = true }
-        )
+        AzNavRail {
+            azMenuItem(id = "scan", text = "Scan", icon = Icons.Filled.NetworkWifi, onClick = onScanClick)
+            azMenuItem(id = "attack", text = "Attack", icon = Icons.Default.Security, onClick = { viewModel.startAttack() })
+            azMenuItem(id = "dictionary", text = "Dictionary", icon = Icons.Default.FileOpen, onClick = { showDictionaryScreen = true })
+        }
         Scaffold(
             containerColor = Color.Transparent,
         ) { innerPadding ->
