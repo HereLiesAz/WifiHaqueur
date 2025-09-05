@@ -1,4 +1,4 @@
-# Wifi Haqueur - The Unethical but Mostly Ineffective WiFi Brutish Tool for Haqueurs 
+# Wifi Haqueur - The Unethical but Mostly Ineffectual Brutish WiFi Tool for Haqueurs 
 
 **"To understand a haqueur, go break something. And then wonder why it's broken."**
 
