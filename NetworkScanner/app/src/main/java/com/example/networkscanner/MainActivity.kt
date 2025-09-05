@@ -24,9 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.networkscanner.ui.theme.NetworkScannerTheme
 import com.hereliesaz.aznavrail.AzNavRail
-import com.hereliesaz.aznavrail.model.NavItem
-import com.hereliesaz.aznavrail.model.NavItemData
-import com.hereliesaz.aznavrail.model.NavRailMenuSection
 
 data class Dictionary(val name: String, val url: String)
 
@@ -63,37 +60,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                val menuSections = remember {
-                    listOf(
-                        NavRailMenuSection(
-                            title = "Actions",
-                            items = listOf(
-                                NavItem(
-                                    text = "Scan Networks",
-                                    data = NavItemData.Action(onClick = {
-                                        Toast.makeText(context, "Scan Networks clicked", Toast.LENGTH_SHORT).show()
-                                    }),
-                                    icon = { Icon(Icons.Default.WifiFind, contentDescription = "Scan Networks") },
-                                    showOnRail = true
-                                ),
-                                NavItem(
-                                    text = "Start Attack",
-                                    data = NavItemData.Action(onClick = {
-                                        Toast.makeText(context, "Start Attack clicked", Toast.LENGTH_SHORT).show()
-                                    }),
-                                    icon = { Icon(Icons.Default.BugReport, contentDescription = "Start Attack") },
-                                    showOnRail = true
-                                ),
-                                NavItem(
-                                    text = "Select Dictionary",
-                                    data = NavItemData.Action(onClick = { showDialog = true }),
-                                    icon = { Icon(Icons.Default.List, contentDescription = "Select Dictionary") },
-                                    showOnRail = true
-                                )
-                            )
-                        )
-                    )
-                }
 
                 if (showDialog) {
                     DictionarySelectionDialog(
@@ -116,7 +82,15 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Row {
-                        AzNavRail(menuSections = menuSections, useAppIconAsHeader = true)
+                        AzNavRail {
+                            azRailItem(id = "scan", text = "Scan Networks", onClick = {
+                                Toast.makeText(context, "Scan Networks clicked", Toast.LENGTH_SHORT).show()
+                            })
+                            azRailItem(id = "attack", text = "Start Attack", onClick = {
+                                Toast.makeText(context, "Start Attack clicked", Toast.LENGTH_SHORT).show()
+                            })
+                            azRailItem(id = "dictionary", text = "Select Dictionary", onClick = { showDialog = true })
+                        }
                         Text("Selected Dictionary: $selectedDictionaryName")
                     }
                 }
