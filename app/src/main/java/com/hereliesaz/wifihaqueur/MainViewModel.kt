@@ -70,9 +70,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val dictionary: StateFlow<List<String>> = _dictionary
 
     private val dictionaryUrls = mapOf(
-        "Weak Password Set" to "https://drive.google.com/uc?export=download&id=10FtpZy28Ru68qWbXbQaBWW6dITyM3Leu",
         "RockYou" to "https://drive.google.com/uc?export=download&id=1Is4puS_7DsQLyXo3h5yxHYz8fOe_o_4h",
         "Phone Numbers" to "https://drive.google.com/uc?export=download&id=104B7oTwz37IMpqNkcy1n8SD6gufKhbLL",
+        "Weak Password Set" to "https://drive.google.com/uc?export=download&id=10FtpZy28Ru68qWbXbQaBWW6dITyM3Leu",
         "English" to "https://drive.google.com/uc?export=download&id=1-zGX4V4jmZ1J5O9HHvSQYkf92nQTccCf",
         "Birthdays (1980-2010)" to "https://drive.google.com/uc?export=download&id=10-5CLasOmnKKXyev3_DCBSd179lOkcGz",
         "500,000-Word Super List" to "https://drive.google.com/uc?export=download&id=1009Wo_1_Kp2smZU6gu58_KC1dg32P2uJ",
@@ -82,10 +82,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     fun setDictionary(name: String) {
-        if (name == "Default") {
-            setDictionary("Weak Password Set")
-            return
-        }
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val url = dictionaryUrls[name] ?: return@launch

@@ -6,6 +6,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.NetworkWifi
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
@@ -29,21 +34,21 @@ fun AzNavRail(
             NavigationRailItem(
                 selected = false,
                 onClick = onScanNetworks,
-                icon = {},
+                icon = { Icon(Icons.Filled.NetworkWifi, contentDescription = "Scan Networks") },
                 label = { Text("Scan") }
             )
             Spacer(modifier = Modifier.height(16.dp))
             NavigationRailItem(
                 selected = false,
                 onClick = onStartAttack,
-                icon = {},
+                icon = { Icon(Icons.Default.Security, contentDescription = "Start Attack") },
                 label = { Text("Attack") }
             )
             Spacer(modifier = Modifier.height(16.dp))
             NavigationRailItem(
                 selected = false,
                 onClick = onSelectDictionary,
-                icon = {},
+                icon = { Icon(Icons.Default.FileOpen, contentDescription = "Select Dictionary") },
                 label = { Text("Dictionary") }
             )
         }
