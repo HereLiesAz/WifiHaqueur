@@ -1,4 +1,4 @@
-package com.hereliesaz.wifihacker.ui.theme
+package com.hereliesaz.WifiHaqueur.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
