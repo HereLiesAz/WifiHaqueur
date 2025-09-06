@@ -172,9 +172,10 @@ fun MainScreen(
 
     Row(Modifier.fillMaxSize()) {
         AzNavRail {
-            azMenuItem(id = "scan", text = "Scan", icon = Icons.Filled.NetworkWifi, onClick = onScanClick)
-            azMenuItem(id = "attack", text = "Attack", icon = Icons.Default.Security, onClick = { viewModel.startAttack() })
-            azMenuItem(id = "dictionary", text = "Dictionary", icon = Icons.Default.FileOpen, onClick = { showDictionaryScreen = true })
+            azSettings(displayAppNameInHeader = true, packRailButtons = false)
+            azRailItem(text = "Scan", onClick = onScanClick)
+            azRailItem(text = "Attack", onClick = { viewModel.startAttack() })
+            azRailItem(text = "Dictionary", onClick = { showDictionaryScreen = true })
         }
         Scaffold(
             containerColor = Color.Transparent,
