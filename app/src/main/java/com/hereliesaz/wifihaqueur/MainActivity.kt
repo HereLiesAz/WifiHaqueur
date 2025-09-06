@@ -172,6 +172,7 @@ fun MainScreen(
 
     Row(Modifier.fillMaxSize()) {
         AzNavRail {
+            azSettings(displayAppNameInHeader = true, packRailButtons = false)
             azRailItem(id = "scan", text = "Scan", icon = Icons.Filled.NetworkWifi, onClick = onScanClick)
             azRailItem(id = "attack", text = "Attack", icon = Icons.Default.Security, onClick = { viewModel.startAttack() })
             azRailItem(id = "dictionary", text = "Dictionary", icon = Icons.Default.FileOpen, onClick = { showDictionaryScreen = true })
