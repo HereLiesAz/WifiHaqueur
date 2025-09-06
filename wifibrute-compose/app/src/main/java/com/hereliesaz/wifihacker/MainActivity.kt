@@ -1,4 +1,4 @@
-package com.hereliesaz.wifihacker
+package com.hereliesaz.WifiHaqueur
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.hereliesaz.wifihacker.ui.theme.WifiHackerTheme
+import com.hereliesaz.WifiHaqueur.ui.theme.WifiHaqueurTheme
 import android.net.wifi.ScanResult
 
 class MainActivity : ComponentActivity() {
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WifiHackerTheme {
+            WifiHaqueurTheme {
                 MainScreen(
                     viewModel = viewModel,
                     onScanClick = {
