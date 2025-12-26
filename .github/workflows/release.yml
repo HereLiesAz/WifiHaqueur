@@ -45,11 +45,33 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          java-version: ${{ steps.get_java_version.outputs.version }}
+          cache: 'gradle'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
+      - name: Increment version
+        id: versioning
+        run: |
+          # Define the path to your app's build.gradle file
+          GRADLE_FILE="app/build.gradle.kts"
+
+          # Extract current version code and name
+          CURRENT_VERSION_CODE=$(grep 'versionCode =' $GRADLE_FILE | awk '{print $3}')
+          CURRENT_VERSION_NAME=$(grep 'versionName =' $GRADLE_FILE | awk '{print $3}' | tr -d '"')
+
+          # Increment versionCode
+          NEW_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
+
+          # Increment patch number in versionName (e.g., 1.2.3 -> 1.2.4)
+          NEW_VERSION_NAME=$(echo $CURRENT_VERSION_NAME | awk -F. -v OFS=. '{$NF = $NF + 1;} 1')
+
+          # Update the build.gradle file with the new versions
+          sed -i "s/versionCode = .*/versionCode = $NEW_VERSION_CODE/" $GRADLE_FILE
+          sed -i "s/versionName = .*/versionName = \"$NEW_VERSION_NAME\"/" $GRADLE_FILE
+
+          echo "Version bumped to $NEW_VERSION_NAME (Code: $NEW_VERSION_CODE)"
+          
+          # Set outputs for subsequent steps
+          echo "new_version_name=$NEW_VERSION_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -124,15 +146,17 @@ jobs:
             PATCH=$(grep 'versionPatch=' version.properties | cut -d'=' -f2)
           fi
 
-          VERSION_NAME="$MAJOR.$MINOR.$PATCH.$BUILD_NUMBER"
-          
-          TAG_NAME="latest-debug-v${MAJOR}.${MINOR}"
-          
-          # Dynamic App Name from settings.gradle
-          if [ -f "settings.gradle.kts" ]; then
-             APP_NAME=$(grep 'rootProject.name' settings.gradle.kts | sed -E "s/.*=.*[\"'](.*)[\"']/\1/")
-          elif [ -f "settings.gradle" ]; then
-             APP_NAME=$(grep 'rootProject.name' settings.gradle | sed -E "s/.*=.*[\"'](.*)[\"']/\1/")
+      - name: Commit and Tag version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add app/build.gradle.kts
+          # Commit only if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(release): Bump version to ${{ steps.versioning.outputs.new_version_name }}"
+            git tag v${{ steps.versioning.outputs.new_version_name }}
+            git push
+            git push --tags
           else
              APP_NAME="App"
           fi
