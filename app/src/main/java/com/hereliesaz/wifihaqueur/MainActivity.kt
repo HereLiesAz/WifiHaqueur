@@ -55,10 +55,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import com.hereliesaz.wifihaqueur.ui.components.AzNavRail
+import androidx.navigation.compose.rememberNavController
+import com.hereliesaz.aznavrail.AzNavRail
 import com.hereliesaz.wifihaqueur.ui.components.DictionarySelectionScreen
 import com.hereliesaz.wifihaqueur.ui.theme.Primary
 import com.hereliesaz.wifihaqueur.ui.theme.WifiHaqueurTheme
@@ -170,12 +172,19 @@ fun MainScreen(
         }
     }
 
+    val navController = rememberNavController()
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+
     Row(Modifier.fillMaxSize()) {
-        AzNavRail {
+        AzNavRail(
+            navController = navController,
+            isLandscape = isLandscape
+        ) {
             azSettings(displayAppNameInHeader = true, packRailButtons = false)
-            azRailItem(id = "scan", text = "Scan", icon = Icons.Filled.NetworkWifi, onClick = onScanClick)
-            azRailItem(id = "attack", text = "Attack", icon = Icons.Default.Security, onClick = { viewModel.startAttack() })
-            azRailItem(id = "dictionary", text = "Dictionary", icon = Icons.Default.FileOpen, onClick = { showDictionaryScreen = true })
+            azRailItem(id = "scan", text = "Scan", onClick = onScanClick)
+            azRailItem(id = "attack", text = "Attack", onClick = { viewModel.startAttack() })
+            azRailItem(id = "dictionary", text = "Dictionary", onClick = { showDictionaryScreen = true })
         }
         Scaffold(
             containerColor = Color.Transparent,
