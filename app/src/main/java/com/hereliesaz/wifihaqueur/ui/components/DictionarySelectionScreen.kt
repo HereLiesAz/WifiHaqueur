@@ -29,7 +29,7 @@ val dictionaries = listOf(
 )
 
 @Composable
-fun DictionarySelectionDialog(
+fun DictionarySelectionScreen(
     onDismiss: () -> Unit,
     onDictionarySelected: (Dictionary) -> Unit,
     onPickFile: () -> Unit
