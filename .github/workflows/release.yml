@@ -27,11 +27,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Dependencies
+        run: chmod +x setup_libs.sh && ./setup_libs.sh
+
       - name: Inject Google Services
         env:
           GOOGLE_SERVICES_API_KEY: ${{ secrets.GOOGLE_SERVICES_API_KEY }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          ARCORE_API_KEY: ${{ secrets.ARCORE_API_KEY }}
         run: |
           if [ -f "app/google-services.json.template" ]; then
             echo "Template found. Injecting secrets..."
@@ -40,50 +44,69 @@ jobs:
             echo "Warning: google-services.json.template not found. Skipping injection."
           fi
 
+          # Inject ARCore API Key into local.properties for build.gradle.kts to pick up
+          echo "ARCORE_API_KEY=$ARCORE_API_KEY" >> local.properties
+
+      - name: Generate Keystore from Secrets
+        env:
+          KEYSTORE_PRIVATE: ${{ secrets.KEYSTORE_PRIVATE }}
+          KEYSTORE_CHAIN: ${{ secrets.KEYSTORE_CHAIN }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          echo "Generating keystore from certificate chain and private key..."
+
+          # Write the private key and certificate chain to temporary files
+          echo "$KEYSTORE_PRIVATE" > private_key.pem
+          echo "$KEYSTORE_CHAIN" > certificate_chain.crt
+
+          # Create a PKCS12 file from the key and certificate chain
+          openssl pkcs12 -export -in certificate_chain.crt -inkey private_key.pem \
+            -name "$KEY_ALIAS" -out keystore.p12 \
+            -password pass:"$KEYSTORE_PASSWORD"
+
+          # Convert the PKCS12 file to a JKS keystore
+          keytool -importkeystore -srckeystore keystore.p12 -srcstoretype PKCS12 \
+            -destkeystore app/keystore.jks -deststoretype JKS \
+            -srcstorepass "$KEYSTORE_PASSWORD" \
+            -deststorepass "$KEYSTORE_PASSWORD" \
+            -alias "$KEY_ALIAS" -noprompt
+
+          echo "Keystore generated successfully at app/keystore.jks"
+
+          # Clean up temporary files
+          rm private_key.pem certificate_chain.crt keystore.p12
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          java-version: ${{ steps.get_java_version.outputs.version }}
-          cache: 'gradle'
 
-      - name: Increment version
-        id: versioning
-        run: |
-          # Define the path to your app's build.gradle file
-          GRADLE_FILE="app/build.gradle.kts"
-
-          # Extract current version code and name
-          CURRENT_VERSION_CODE=$(grep 'versionCode =' $GRADLE_FILE | awk '{print $3}')
-          CURRENT_VERSION_NAME=$(grep 'versionName =' $GRADLE_FILE | awk '{print $3}' | tr -d '"')
-
-          # Increment versionCode
-          NEW_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
-
-          # Increment patch number in versionName (e.g., 1.2.3 -> 1.2.4)
-          NEW_VERSION_NAME=$(echo $CURRENT_VERSION_NAME | awk -F. -v OFS=. '{$NF = $NF + 1;} 1')
-
-          # Update the build.gradle file with the new versions
-          sed -i "s/versionCode = .*/versionCode = $NEW_VERSION_CODE/" $GRADLE_FILE
-          sed -i "s/versionName = .*/versionName = \"$NEW_VERSION_NAME\"/" $GRADLE_FILE
-
-          echo "Version bumped to $NEW_VERSION_NAME (Code: $NEW_VERSION_CODE)"
-          
-          # Set outputs for subsequent steps
-          echo "new_version_name=$NEW_VERSION_NAME" >> "$GITHUB_OUTPUT"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build with Gradle
         id: gradle-build
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           set +e
           export BUILD_NUMBER=$(git rev-list --count HEAD)
           
           # Build the APK
-          ./gradlew assembleDebug -PversionBuild=$BUILD_NUMBER --build-cache > build.log 2>&1
+          ./gradlew assembleDebug -PversionBuild=$BUILD_NUMBER --build-cache \
+            -Pandroid.injected.signing.store.file=$(pwd)/app/keystore.jks \
+            -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$KEY_PASSWORD > build.log 2>&1
           
           EXIT_CODE=$?
           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
@@ -146,27 +169,19 @@ jobs:
             PATCH=$(grep 'versionPatch=' version.properties | cut -d'=' -f2)
           fi
 
-          echo "MAJOR=$MAJOR" >> $GITHUB_ENV
-          echo "MINOR=$MINOR" >> $GITHUB_ENV
-          echo "PATCH=$PATCH" >> $GITHUB_ENV
-
-      - name: Commit and Tag version bump
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add app/build.gradle.kts
-          # Commit only if there are changes
-          if ! git diff --staged --quiet; then
-            git commit -m "chore(release): Bump version to ${{ steps.versioning.outputs.new_version_name }}"
-            git tag v${{ steps.versioning.outputs.new_version_name }}
-            git push
-            git push --tags
+          VERSION_NAME="$MAJOR.$MINOR.$PATCH.$BUILD_NUMBER"
+          
+          TAG_NAME="latest-debug-v${MAJOR}.${MINOR}"
+          
+          # Dynamic App Name from settings.gradle
+          if [ -f "settings.gradle.kts" ]; then
+             APP_NAME=$(grep 'rootProject.name' settings.gradle.kts | sed -E "s/.*=.*[\"'](.*)[\"']/\1/")
+          elif [ -f "settings.gradle" ]; then
+             APP_NAME=$(grep 'rootProject.name' settings.gradle | sed -E "s/.*=.*[\"'](.*)[\"']/\1/")
+          else
+             APP_NAME="App"
           fi
           
-          # Create the debug tag format requested: debug-major.minor
-          VERSION_NAME=${{ steps.versioning.outputs.new_version_name }}
-          TAG_NAME="debug-${{ env.MAJOR }}.${{ env.MINOR }}"
-
           # Locate built APK
           APK_ORIGINAL=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
           
@@ -175,8 +190,7 @@ jobs:
              exit 1
           fi
 
-          # Target name requested: WifiHaqueuer-debug-x.x.x.x.apk (x.x.x.x is version)
-          TARGET_NAME="WifiHaqueuer-debug-${VERSION_NAME}.apk"
+          TARGET_NAME="${APP_NAME}-${VERSION_NAME}-debug.apk"
           
           # Rename for release
           mv "$APK_ORIGINAL" "$TARGET_NAME"
@@ -207,10 +221,16 @@ jobs:
           # Check if release exists
           if gh release view $TAG_NAME > /dev/null 2>&1; then
              echo "Updating existing release..."
+
+             # Clean up ONLY the build-tools asset to avoid conflicts
+             gh release delete-asset "$TAG_NAME" "$BUILD_TOOLS" -y || true
+
              gh release edit $TAG_NAME --prerelease \
                --title "Latest Debug Build ($TAG_NAME)" \
                --notes "Auto-build from commit $GITHUB_SHA" \
                --target $GITHUB_SHA
+
+             # Clobber ensures that if we re-run the workflow on the exact same commit, it replaces the APK instead of failing.
              gh release upload $TAG_NAME "$APK_FILE" --clobber
              [ -f "$BUILD_TOOLS" ] && gh release upload $TAG_NAME "$BUILD_TOOLS" --clobber
           else
