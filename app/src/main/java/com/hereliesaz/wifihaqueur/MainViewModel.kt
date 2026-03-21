@@ -97,15 +97,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val url = dictionaryUrls[name] ?: return@launch
-                _logMessages.value = _logMessages.value + "Downloading dictionary from: $url"
+                withContext(Dispatchers.Main) {
+                    _logMessages.value = _logMessages.value + "Downloading dictionary from: $url"
+                }
                 val dictionaryContent = URL(url).readText()
                 val lines = dictionaryContent.lines()
-                _dictionarySource.value = DictionarySource.InMemory(lines)
-                _dictionary.value = lines // For legacy UI binding if needed
-                _totalPasswords.value = lines.size.toLong()
-                _logMessages.value = _logMessages.value + "Dictionary loaded successfully."
+                withContext(Dispatchers.Main) {
+                    _dictionarySource.value = DictionarySource.InMemory(lines)
+                    _dictionary.value = lines // For legacy UI binding if needed
+                    _totalPasswords.value = lines.size.toLong()
+                    _logMessages.value = _logMessages.value + "Dictionary loaded successfully."
+                }
             } catch (e: Exception) {
-                _logMessages.value = _logMessages.value + "Error downloading dictionary: ${e.message}"
+                withContext(Dispatchers.Main) {
+                    _logMessages.value = _logMessages.value + "Error downloading dictionary: ${e.message}"
+                }
             }
         }
     }
@@ -113,17 +119,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setDictionaryFromFile(content: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val lines = content.lines()
-            _dictionarySource.value = DictionarySource.InMemory(lines)
-            _dictionary.value = lines
-            _totalPasswords.value = lines.size.toLong()
-            _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+            withContext(Dispatchers.Main) {
+                _dictionarySource.value = DictionarySource.InMemory(lines)
+                _dictionary.value = lines
+                _totalPasswords.value = lines.size.toLong()
+                _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+            }
         }
     }
 
     fun setDictionaryFromUri(uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
-            _dictionarySource.value = DictionarySource.FileUri(uri)
-            _dictionary.value = emptyList() // clear in-memory preview
+            withContext(Dispatchers.Main) {
+                _dictionarySource.value = DictionarySource.FileUri(uri)
+                _dictionary.value = emptyList() // clear in-memory preview
+            }
 
             // Calculate total passwords safely using streaming to avoid OOM
             try {
@@ -134,8 +144,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     inputStream.bufferedReader().useLines { lines ->
                         count = lines.count().toLong()
                     }
-                    _totalPasswords.value = count
                     withContext(Dispatchers.Main) {
+                        _totalPasswords.value = count
                         _logMessages.value = _logMessages.value + "Custom dictionary prepared ($count passwords)."
                     }
                 } else {
@@ -204,8 +214,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         val context = getApplication<Application>().applicationContext
                         val inputStream: InputStream? = context.contentResolver.openInputStream(source.uri)
                         if (inputStream != null) {
-                            inputStream.bufferedReader().useLines { lines ->
-                                runAttackLoop(lines)
+                            val reader = inputStream.bufferedReader()
+                            try {
+                                val seq = reader.lineSequence()
+                                runAttackLoop(seq)
+                            } finally {
+                                reader.close()
                             }
                         } else {
                             withContext(Dispatchers.Main) {
