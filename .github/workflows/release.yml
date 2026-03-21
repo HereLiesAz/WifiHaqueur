@@ -146,6 +146,10 @@ jobs:
             PATCH=$(grep 'versionPatch=' version.properties | cut -d'=' -f2)
           fi
 
+          echo "MAJOR=$MAJOR" >> $GITHUB_ENV
+          echo "MINOR=$MINOR" >> $GITHUB_ENV
+          echo "PATCH=$PATCH" >> $GITHUB_ENV
+
       - name: Commit and Tag version bump
         run: |
           git config --local user.email "action@github.com"
@@ -157,10 +161,14 @@ jobs:
             git tag v${{ steps.versioning.outputs.new_version_name }}
             git push
             git push --tags
-          else
-             APP_NAME="App"
           fi
           
+          # Create the debug tag format requested: debug-major.minor
+          VERSION_NAME=${{ steps.versioning.outputs.new_version_name }}
+          MAJOR_VERSION=$(echo $VERSION_NAME | cut -d'.' -f1)
+          MINOR_VERSION=$(echo $VERSION_NAME | cut -d'.' -f2)
+          TAG_NAME="debug-${MAJOR_VERSION}.${MINOR_VERSION}"
+
           # Locate built APK
           APK_ORIGINAL=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
           
@@ -169,7 +177,8 @@ jobs:
              exit 1
           fi
 
-          TARGET_NAME="${APP_NAME}-${VERSION_NAME}-debug.apk"
+          # Target name requested: WifiHaqueuer-debug-x.x.x.x.apk (x.x.x.x is version)
+          TARGET_NAME="WifiHaqueuer-debug-${VERSION_NAME}.apk"
           
           # Rename for release
           mv "$APK_ORIGINAL" "$TARGET_NAME"

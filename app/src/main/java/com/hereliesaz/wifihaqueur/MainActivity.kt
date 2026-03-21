@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,23 +89,12 @@ class MainActivity : ComponentActivity() {
     private val pickFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    try {
-                        val inputStream = contentResolver.openInputStream(uri)
-                        val content = inputStream?.bufferedReader()?.use { it.readText() }
-                        withContext(Dispatchers.Main) {
-                            if (content != null) {
-                                viewModel.setDictionaryFromFile(content)
-                                Toast.makeText(this@MainActivity, "Custom dictionary loaded successfully", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(this@MainActivity, "Failed to read file", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@MainActivity, "Error loading dictionary: ${e.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                try {
+                    viewModel.setDictionaryFromUri(uri)
+                    Toast.makeText(this@MainActivity, "Loading custom dictionary...", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error starting dictionary load", e)
+                    Toast.makeText(this@MainActivity, "Error loading dictionary", Toast.LENGTH_SHORT).show()
                 }
             }
         }
