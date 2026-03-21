@@ -28,6 +28,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.net.URL
 import kotlin.coroutines.resume
+import android.net.Uri
+import java.io.InputStream
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -66,6 +68,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _totalPasswords = MutableStateFlow(0L)
     val totalPasswords: StateFlow<Long> = _totalPasswords
 
+    // Represents either an in-memory list or a URI to a file for streaming
+    sealed class DictionarySource {
+        data class InMemory(val lines: List<String>) : DictionarySource()
+        data class FileUri(val uri: Uri) : DictionarySource()
+        object None : DictionarySource()
+    }
+
+    private val _dictionarySource = MutableStateFlow<DictionarySource>(DictionarySource.None)
+
+    // We retain dictionary for UI compatibility if needed, although it might just show a preview
     private val _dictionary = MutableStateFlow<List<String>>(emptyList())
     val dictionary: StateFlow<List<String>> = _dictionary
 
@@ -88,7 +100,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _logMessages.value = _logMessages.value + "Downloading dictionary from: $url"
                 val dictionaryContent = URL(url).readText()
                 val lines = dictionaryContent.lines()
-                _dictionary.value = lines
+                _dictionarySource.value = DictionarySource.InMemory(lines)
+                _dictionary.value = lines // For legacy UI binding if needed
                 _totalPasswords.value = lines.size.toLong()
                 _logMessages.value = _logMessages.value + "Dictionary loaded successfully."
             } catch (e: Exception) {
@@ -98,10 +111,44 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setDictionaryFromFile(content: String) {
-        val lines = content.lines()
-        _dictionary.value = lines
-        _totalPasswords.value = lines.size.toLong()
-        _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+        viewModelScope.launch(Dispatchers.IO) {
+            val lines = content.lines()
+            _dictionarySource.value = DictionarySource.InMemory(lines)
+            _dictionary.value = lines
+            _totalPasswords.value = lines.size.toLong()
+            _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+        }
+    }
+
+    fun setDictionaryFromUri(uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _dictionarySource.value = DictionarySource.FileUri(uri)
+            _dictionary.value = emptyList() // clear in-memory preview
+
+            // Calculate total passwords safely using streaming to avoid OOM
+            try {
+                val context = getApplication<Application>().applicationContext
+                val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+                if (inputStream != null) {
+                    var count = 0L
+                    inputStream.bufferedReader().useLines { lines ->
+                        count = lines.count().toLong()
+                    }
+                    _totalPasswords.value = count
+                    withContext(Dispatchers.Main) {
+                        _logMessages.value = _logMessages.value + "Custom dictionary prepared ($count passwords)."
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        _logMessages.value = _logMessages.value + "Failed to open dictionary file."
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _logMessages.value = _logMessages.value + "Error reading custom dictionary."
+                }
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -148,27 +195,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _logMessages.value = listOf("Starting attack on ${_selectedNetwork.value?.SSID}...")
 
             withContext(Dispatchers.IO) {
-                for ((index, password) in _dictionary.value.withIndex()) {
-                    if (!_isAttacking.value) break
-
-                    val startTime = System.currentTimeMillis()
-
-                    val success = connectToWifi(password)
-
-                    val endTime = System.currentTimeMillis()
-                    val timeTaken = endTime - startTime
-
-                    withContext(Dispatchers.Main) {
-                        _currentPassword.value = password
-                        _passwordsTried.value = index + 1L
-                        val newAverage =
-                            ((_averageTimePerPassword.value * index) + timeTaken) / (index + 1)
-                        _averageTimePerPassword.value = newAverage
-                        _logMessages.value = _logMessages.value + "Tried: $password - ${if (success) "Success!" else "Failed"}"
-
-                        if (success) {
-                            _logMessages.value = _logMessages.value + "Password found: $password"
-                            _isAttacking.value = false
+                val source = _dictionarySource.value
+                when (source) {
+                    is DictionarySource.InMemory -> {
+                        runAttackLoop(source.lines.asSequence())
+                    }
+                    is DictionarySource.FileUri -> {
+                        val context = getApplication<Application>().applicationContext
+                        val inputStream: InputStream? = context.contentResolver.openInputStream(source.uri)
+                        if (inputStream != null) {
+                            inputStream.bufferedReader().useLines { lines ->
+                                runAttackLoop(lines)
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                _logMessages.value = _logMessages.value + "Failed to open dictionary stream."
+                            }
+                        }
+                    }
+                    DictionarySource.None -> {
+                        withContext(Dispatchers.Main) {
+                            _logMessages.value = _logMessages.value + "No dictionary selected."
                         }
                     }
                 }
@@ -178,6 +225,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _logMessages.value = _logMessages.value + "Attack finished. Password not found."
             }
             _isAttacking.value = false
+        }
+    }
+
+    private suspend fun runAttackLoop(sequence: Sequence<String>) {
+        for ((index, password) in sequence.withIndex()) {
+            if (!_isAttacking.value) break
+
+            val startTime = System.currentTimeMillis()
+
+            val success = connectToWifi(password)
+
+            val endTime = System.currentTimeMillis()
+            val timeTaken = endTime - startTime
+
+            withContext(Dispatchers.Main) {
+                _currentPassword.value = password
+                _passwordsTried.value = index + 1L
+                val newAverage =
+                    ((_averageTimePerPassword.value * index) + timeTaken) / (index + 1)
+                _averageTimePerPassword.value = newAverage
+                _logMessages.value = _logMessages.value + "Tried: $password - ${if (success) "Success!" else "Failed"}"
+
+                if (success) {
+                    _logMessages.value = _logMessages.value + "Password found: $password"
+                    _isAttacking.value = false
+                }
+            }
         }
     }
 

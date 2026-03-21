@@ -10,6 +10,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -84,8 +89,13 @@ class MainActivity : ComponentActivity() {
     private val pickFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
-                // TODO: Handle the selected file URI
-                Toast.makeText(this, "File selected: $uri", Toast.LENGTH_SHORT).show()
+                try {
+                    viewModel.setDictionaryFromUri(uri)
+                    Toast.makeText(this@MainActivity, "Loading custom dictionary...", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error starting dictionary load", e)
+                    Toast.makeText(this@MainActivity, "Error loading dictionary", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
