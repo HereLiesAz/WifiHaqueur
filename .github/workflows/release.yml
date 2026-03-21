@@ -165,9 +165,7 @@ jobs:
           
           # Create the debug tag format requested: debug-major.minor
           VERSION_NAME=${{ steps.versioning.outputs.new_version_name }}
-          MAJOR_VERSION=$(echo $VERSION_NAME | cut -d'.' -f1)
-          MINOR_VERSION=$(echo $VERSION_NAME | cut -d'.' -f2)
-          TAG_NAME="debug-${MAJOR_VERSION}.${MINOR_VERSION}"
+          TAG_NAME="debug-${{ env.MAJOR }}.${{ env.MINOR }}"
 
           # Locate built APK
           APK_ORIGINAL=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
