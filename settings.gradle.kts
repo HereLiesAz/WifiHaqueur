@@ -18,7 +18,7 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "WifiHaqueur"
+rootProject.name = "WifiHaqueuer"
 include(":app")
 include(":NetworkScanner")
 include(":wifibrute-compose")

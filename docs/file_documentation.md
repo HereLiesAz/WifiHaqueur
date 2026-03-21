@@ -12,7 +12,7 @@ This file specifies which files and directories should be ignored by Git. This i
 
 ### `README.md`
 
-This file provides an introduction to the Wifi Haqueur project. It includes a description of the project, its features, installation instructions, and credits.
+This file provides an introduction to the WifiHaqueuer project. It includes a description of the project, its features, installation instructions, and credits.
 
 ---
 
@@ -102,7 +102,7 @@ This file defines a composable function that creates the application's navigatio
 
 ### `app/src/main/java/com/hereliesaz/wifihaqueur/DictionarySelectionScreen.kt`
 
-This file defines a composable function that creates the dictionary selection screen. This screen allows the user to choose a password dictionary from a predefined list or to select a dictionary file from their device.
+This file defines a composable function that creates the dictionary selection screen. This screen allows the user to choose a password dictionary from a predefined list or to load a custom dictionary file from their device.
 
 ---
 
