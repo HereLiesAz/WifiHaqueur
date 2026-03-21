@@ -98,10 +98,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setDictionaryFromFile(content: String) {
-        val lines = content.lines()
-        _dictionary.value = lines
-        _totalPasswords.value = lines.size.toLong()
-        _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+        viewModelScope.launch(Dispatchers.IO) {
+            val lines = content.lines()
+            _dictionary.value = lines
+            _totalPasswords.value = lines.size.toLong()
+            _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+        }
     }
 
     @Suppress("DEPRECATION")
