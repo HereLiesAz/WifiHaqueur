@@ -147,114 +147,117 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setDictionary(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 val originalUrlString = dictionaryUrls[name] ?: return@launch
                 val context = getApplication<Application>().applicationContext
                 val file = java.io.File(context.cacheDir, "$name.txt")
 
+                val exists = withContext(Dispatchers.IO) {
+                    file.exists() && file.length() > 0
+                }
+
                 val lines: List<String>
 
-                if (file.exists() && file.length() > 0) {
-                     withContext(Dispatchers.Main) {
-                        _logMessages.value = _logMessages.value + "Loading cached dictionary: $name"
+                if (exists) {
+                    _logMessages.value = _logMessages.value + "Loading cached dictionary: $name"
+                    lines = withContext(Dispatchers.IO) {
+                        file.readLines()
                     }
-                    lines = file.readLines()
                 } else {
-                    withContext(Dispatchers.Main) {
-                        _logMessages.value = _logMessages.value + "Downloading dictionary from: $originalUrlString"
-                        _downloadProgress.value = 0f
-                    }
+                    _logMessages.value = _logMessages.value + "Downloading dictionary from: $originalUrlString"
+                    _downloadProgress.value = 0f
 
-                    val urlString = getGoogleDriveDownloadUrl(originalUrlString)
-                    val url = URL(urlString)
-                    val connection = url.openConnection() as java.net.HttpURLConnection
-                    // Handle further redirects
-                    connection.instanceFollowRedirects = true
-                    connection.connect()
+                    lines = withContext(Dispatchers.IO) {
+                        val urlString = getGoogleDriveDownloadUrl(originalUrlString)
+                        val url = URL(urlString)
+                        val connection = url.openConnection() as java.net.HttpURLConnection
+                        // Handle further redirects
+                        connection.instanceFollowRedirects = true
+                        connection.connect()
 
-                    val fileLength = connection.contentLength
+                        val fileLength = connection.contentLength
 
-                    connection.inputStream.use { input ->
-                        java.io.FileOutputStream(file).use { fileOutput ->
-                            val data = ByteArray(4096)
-                            var total: Long = 0
-                            var count: Int
+                        connection.inputStream.use { input ->
+                            java.io.FileOutputStream(file).use { fileOutput ->
+                                val data = ByteArray(4096)
+                                var total: Long = 0
+                                var count: Int
 
-                            while (input.read(data).also { count = it } != -1) {
-                                total += count.toLong()
-                                if (fileLength > 0) {
-                                    val progress = (total * 100 / fileLength).toFloat() / 100f
-                                    _downloadProgress.value = progress
-                                } else {
-                                    // Indeterminate progress
-                                    _downloadProgress.value = -1f
+                                while (input.read(data).also { count = it } != -1) {
+                                    total += count.toLong()
+                                    if (fileLength > 0) {
+                                        val progress = (total * 100 / fileLength).toFloat() / 100f
+                                        withContext(Dispatchers.Main) {
+                                            _downloadProgress.value = progress
+                                        }
+                                    } else {
+                                        // Indeterminate progress
+                                        withContext(Dispatchers.Main) {
+                                            _downloadProgress.value = -1f
+                                        }
+                                    }
+                                    fileOutput.write(data, 0, count)
                                 }
-                                fileOutput.write(data, 0, count)
                             }
                         }
+
+                        file.readLines()
                     }
-
-                    lines = file.readLines()
                 }
 
-                withContext(Dispatchers.Main) {
-                    _downloadProgress.value = null
-                    _dictionarySource.value = DictionarySource.InMemory(lines)
-                    _dictionary.value = lines // For legacy UI binding if needed
-                    _totalPasswords.value = lines.size.toLong()
-                    _logMessages.value = _logMessages.value + "Dictionary loaded successfully. Ready to use."
-                }
+                _downloadProgress.value = null
+                _dictionarySource.value = DictionarySource.InMemory(lines)
+                _dictionary.value = lines // For legacy UI binding if needed
+                _totalPasswords.value = lines.size.toLong()
+                _logMessages.value = _logMessages.value + "Dictionary loaded successfully. Ready to use."
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _downloadProgress.value = null
-                    _logMessages.value = _logMessages.value + "Error downloading dictionary: ${e.message}"
-                }
+                _downloadProgress.value = null
+                _logMessages.value = _logMessages.value + "Error downloading dictionary: ${e.message}"
             }
         }
     }
 
     fun setDictionaryFromFile(content: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val lines = content.lines()
-            withContext(Dispatchers.Main) {
-                _dictionarySource.value = DictionarySource.InMemory(lines)
-                _dictionary.value = lines
-                _totalPasswords.value = lines.size.toLong()
-                _logMessages.value = _logMessages.value + "Dictionary loaded from file."
-            }
+            _dictionarySource.value = DictionarySource.InMemory(lines)
+            _dictionary.value = lines
+            _totalPasswords.value = lines.size.toLong()
+            _logMessages.value = _logMessages.value + "Dictionary loaded from file."
         }
     }
 
     fun setDictionaryFromUri(uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) {
-                _dictionarySource.value = DictionarySource.FileUri(uri)
-                _dictionary.value = emptyList() // clear in-memory preview
-            }
+        viewModelScope.launch {
+            _dictionarySource.value = DictionarySource.FileUri(uri)
+            _dictionary.value = emptyList() // clear in-memory preview
 
             // Calculate total passwords safely using streaming to avoid OOM
             try {
                 val context = getApplication<Application>().applicationContext
-                val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-                if (inputStream != null) {
-                    var count = 0L
-                    inputStream.bufferedReader().useLines { lines ->
-                        count = lines.count().toLong()
+
+                val count = withContext(Dispatchers.IO) {
+                    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+                    if (inputStream != null) {
+                        var streamCount = 0L
+                        inputStream.bufferedReader().useLines { lines ->
+                            streamCount = lines.count().toLong()
+                        }
+                        streamCount
+                    } else {
+                        -1L
                     }
-                    withContext(Dispatchers.Main) {
-                        _totalPasswords.value = count
-                        _logMessages.value = _logMessages.value + "Custom dictionary prepared ($count passwords)."
-                    }
+                }
+
+                if (count != -1L) {
+                    _totalPasswords.value = count
+                    _logMessages.value = _logMessages.value + "Custom dictionary prepared ($count passwords)."
                 } else {
-                    withContext(Dispatchers.Main) {
-                        _logMessages.value = _logMessages.value + "Failed to open dictionary file."
-                    }
+                    _logMessages.value = _logMessages.value + "Failed to open dictionary file."
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _logMessages.value = _logMessages.value + "Error reading custom dictionary."
-                }
+                _logMessages.value = _logMessages.value + "Error reading custom dictionary."
             }
         }
     }
