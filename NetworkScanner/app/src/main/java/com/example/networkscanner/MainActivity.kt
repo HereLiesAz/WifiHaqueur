@@ -79,7 +79,6 @@ class MainActivity : ComponentActivity() {
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
                 ) {
                     Row {
                         AzNavRail {
@@ -108,7 +107,7 @@ fun DictionarySelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select a Dictionary") },
+        title = { Text("Dictionaries") },
         text = {
             LazyColumn {
                 item {
@@ -116,7 +115,7 @@ fun DictionarySelectionDialog(
                         onLocalFileSelected()
                         onDismiss()
                     }) {
-                        Text("Use Local Dictionary")
+                        Text("Load")
                     }
                 }
                 items(dictionaries) { dictionary ->

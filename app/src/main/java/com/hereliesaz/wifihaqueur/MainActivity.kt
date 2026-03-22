@@ -3,7 +3,6 @@ package com.hereliesaz.wifihaqueur
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.wifi.ScanResult
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -118,7 +117,7 @@ class MainActivity : ComponentActivity() {
                 viewModel.startScan()
             }
 
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && shouldShowRequestPermissionRationale(
+            shouldShowRequestPermissionRationale(
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) -> {
                 // TODO: Show a dialog explaining why the permission is needed

@@ -136,7 +136,7 @@ azRailItem(
             Box(
                 modifier = Modifier
                     .size(24.dp)
-                    .background(Color.White, CircleShape)
+                  .background(CircleShape)
             )
         }
     }
