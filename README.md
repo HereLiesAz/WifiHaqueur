@@ -13,6 +13,7 @@ WifiHaqueuer is a blunt instrument you can whack a router with using the force o
 *   **Password Generator:** Create strong and secure passwords for your WiFi networks.
 *   **Device Scanner:** See who's connected to your network and identify any unauthorized devices.
 *   **Custom Dictionary Loading:** Load a custom dictionary file from your device to use in attacks.
+*   **Dictionary Downloading:** Automatically download and load online dictionary sets, complete with a visual progress indicator.
 
 ## 🛠️ Installation
 
