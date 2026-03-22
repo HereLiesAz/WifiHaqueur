@@ -148,6 +148,7 @@ fun MainScreen(
     val isAttacking by viewModel.isAttacking.collectAsState()
     val passwordsTried by viewModel.passwordsTried.collectAsState()
     val totalPasswords by viewModel.totalPasswords.collectAsState()
+    val downloadProgress by viewModel.downloadProgress.collectAsState()
     var showDictionaryScreen by remember { mutableStateOf(false) }
 
     if (showDictionaryScreen) {
@@ -219,6 +220,12 @@ fun MainScreen(
                 ) {
                     if (isScanning) {
                         CircularProgressIndicator()
+                    } else if (downloadProgress != null) {
+                        if (downloadProgress!! < 0f) {
+                            CircularProgressIndicator()
+                        } else {
+                            CircularProgressIndicator(progress = downloadProgress!!)
+                        }
                     } else if (isAttacking) {
                         RadialProgressBar(
                             progress = (passwordsTried.toFloat() / totalPasswords.toFloat()),

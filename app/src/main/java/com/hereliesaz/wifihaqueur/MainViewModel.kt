@@ -81,6 +81,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _dictionary = MutableStateFlow<List<String>>(emptyList())
     val dictionary: StateFlow<List<String>> = _dictionary
 
+    private val _downloadProgress = MutableStateFlow<Float?>(null)
+    val downloadProgress: StateFlow<Float?> = _downloadProgress
+
     private val dictionaryUrls = mapOf(
         "RockYou" to "https://drive.google.com/uc?export=download&id=1Is4puS_7DsQLyXo3h5yxHYz8fOe_o_4h",
         "Phone Numbers" to "https://drive.google.com/uc?export=download&id=104B7oTwz37IMpqNkcy1n8SD6gufKhbLL",
@@ -93,23 +96,119 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         "160 Million Password Set" to "https://drive.google.com/uc?export=download&id=1-XPAMKVJ77HFNB2qNxgeEtyJq1awkFeP"
     )
 
+    private fun getGoogleDriveDownloadUrl(urlString: String): String {
+        return try {
+            val url = URL(urlString)
+            var connection = url.openConnection() as java.net.HttpURLConnection
+            connection.instanceFollowRedirects = false
+            var redirectUrl = connection.getHeaderField("Location")
+
+            if (redirectUrl != null) {
+                connection.disconnect()
+                // If it's a redirect, it might be the virus scan page
+                val checkUrl = URL(redirectUrl)
+                val checkConnection = checkUrl.openConnection() as java.net.HttpURLConnection
+                checkConnection.connect()
+
+                val contentType = checkConnection.contentType ?: ""
+
+                if (contentType.startsWith("text/html")) {
+                    val input = checkConnection.inputStream
+                    val content = input.bufferedReader().use { it.readText() }
+                    input.close()
+                    checkConnection.disconnect()
+
+                    // Check if it's the virus scan warning page and extract the download link
+                    if (content.contains("uc-download-link")) {
+                        val confirmRegex = """name="confirm" value="([^"]+)"""".toRegex()
+                        val uuidRegex = """name="uuid" value="([^"]+)"""".toRegex()
+                        val confirmMatch = confirmRegex.find(content)
+                        val uuidMatch = uuidRegex.find(content)
+
+                        if (confirmMatch != null) {
+                            val confirmToken = confirmMatch.groupValues[1]
+                            var finalUrl = "$redirectUrl&confirm=$confirmToken"
+                            if (uuidMatch != null) {
+                                finalUrl += "&uuid=${uuidMatch.groupValues[1]}"
+                            }
+                            return finalUrl
+                        }
+                    }
+                } else {
+                     checkConnection.disconnect()
+                }
+                return redirectUrl
+            }
+            connection.disconnect()
+            urlString
+        } catch (e: Exception) {
+            urlString
+        }
+    }
+
     fun setDictionary(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = dictionaryUrls[name] ?: return@launch
-                withContext(Dispatchers.Main) {
-                    _logMessages.value = _logMessages.value + "Downloading dictionary from: $url"
+                val originalUrlString = dictionaryUrls[name] ?: return@launch
+                val context = getApplication<Application>().applicationContext
+                val file = java.io.File(context.cacheDir, "$name.txt")
+
+                val lines: List<String>
+
+                if (file.exists() && file.length() > 0) {
+                     withContext(Dispatchers.Main) {
+                        _logMessages.value = _logMessages.value + "Loading cached dictionary: $name"
+                    }
+                    lines = file.readLines()
+                } else {
+                    withContext(Dispatchers.Main) {
+                        _logMessages.value = _logMessages.value + "Downloading dictionary from: $originalUrlString"
+                        _downloadProgress.value = 0f
+                    }
+
+                    val urlString = getGoogleDriveDownloadUrl(originalUrlString)
+                    val url = URL(urlString)
+                    val connection = url.openConnection() as java.net.HttpURLConnection
+                    // Handle further redirects
+                    connection.instanceFollowRedirects = true
+                    connection.connect()
+
+                    val fileLength = connection.contentLength
+                    val input = connection.inputStream
+
+                    val fileOutput = java.io.FileOutputStream(file)
+                    val data = ByteArray(4096)
+                    var total: Long = 0
+                    var count: Int
+
+                    while (input.read(data).also { count = it } != -1) {
+                        total += count.toLong()
+                        if (fileLength > 0) {
+                            val progress = (total * 100 / fileLength).toFloat() / 100f
+                            _downloadProgress.value = progress
+                        } else {
+                            // Indeterminate progress
+                            _downloadProgress.value = -1f
+                        }
+                        fileOutput.write(data, 0, count)
+                    }
+
+                    fileOutput.close()
+                    input.close()
+
+                    lines = file.readLines()
                 }
-                val dictionaryContent = URL(url).readText()
-                val lines = dictionaryContent.lines()
+
                 withContext(Dispatchers.Main) {
+                    _downloadProgress.value = null
                     _dictionarySource.value = DictionarySource.InMemory(lines)
                     _dictionary.value = lines // For legacy UI binding if needed
                     _totalPasswords.value = lines.size.toLong()
-                    _logMessages.value = _logMessages.value + "Dictionary loaded successfully."
+                    _logMessages.value = _logMessages.value + "Dictionary loaded successfully. Ready to use."
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    _downloadProgress.value = null
                     _logMessages.value = _logMessages.value + "Error downloading dictionary: ${e.message}"
                 }
             }
