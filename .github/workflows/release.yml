@@ -27,9 +27,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Dependencies
-        run: chmod +x setup_libs.sh && ./setup_libs.sh
-
       - name: Inject Google Services
         env:
           GOOGLE_SERVICES_API_KEY: ${{ secrets.GOOGLE_SERVICES_API_KEY }}
@@ -158,15 +155,15 @@ jobs:
           export BUILD_NUMBER=$(git rev-list --count HEAD)
           
           # Extract version info from properties file
-          MAJOR=$(grep 'versionMajor=' version.properties | cut -d'=' -f2)
-          MINOR=$(grep 'versionMinor=' version.properties | cut -d'=' -f2)
+          MAJOR=$(grep '^major=' version.properties | cut -d'=' -f2- | sed 's/^=//')
+          MINOR=$(grep '^minor=' version.properties | cut -d'=' -f2- | sed 's/^=//')
 
           # Calculate Patch version programmatically based on commits since Minor update
-          MINOR_COMMIT=$(git blame -L '/versionMinor=/',+1 version.properties | awk '{print $1}' | tr -d '^')
+          MINOR_COMMIT=$(git blame -L '/^minor=/',+1 version.properties | awk '{print $1}' | tr -d '^')
           if [ -n "$MINOR_COMMIT" ]; then
             PATCH=$(git rev-list --count $MINOR_COMMIT..HEAD)
           else
-            PATCH=$(grep 'versionPatch=' version.properties | cut -d'=' -f2)
+            PATCH=$(grep '^patch=' version.properties | cut -d'=' -f2- | sed 's/^=//')
           fi
 
           VERSION_NAME="$MAJOR.$MINOR.$PATCH.$BUILD_NUMBER"
