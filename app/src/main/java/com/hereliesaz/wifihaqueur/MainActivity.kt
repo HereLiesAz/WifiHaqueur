@@ -5,16 +5,12 @@ import android.content.pm.PackageManager
 import android.net.wifi.ScanResult
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import android.util.Log
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -22,7 +18,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,16 +28,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileOpen
-import androidx.compose.material.icons.filled.NetworkWifi
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -59,13 +49,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.hereliesaz.aznavrail.AzNavRail
+import com.hereliesaz.aznavrail.AzHostActivityLayout
+import com.hereliesaz.aznavrail.model.AzDockingSide
 import com.hereliesaz.wifihaqueur.ui.components.DictionarySelectionScreen
 import com.hereliesaz.wifihaqueur.ui.theme.Primary
 import com.hereliesaz.wifihaqueur.ui.theme.WifiHaqueurTheme
@@ -185,24 +177,32 @@ fun MainScreen(
     val navController = rememberNavController()
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination?.route
 
-    Row(Modifier.fillMaxSize()) {
-        AzNavRail(
-            navController = navController,
-            isLandscape = isLandscape
-        ) {
-            azSettings(displayAppNameInHeader = true, packRailButtons = false)
-            azRailItem(id = "scan", text = "Scan", onClick = onScanClick)
-            azRailItem(id = "attack", text = "Attack", onClick = { viewModel.startAttack() })
-            azRailItem(id = "dictionary", text = "Dictionary", onClick = { showDictionaryScreen = true })
-        }
-        Scaffold(
-            containerColor = Color.Transparent,
-        ) { innerPadding ->
+    AzHostActivityLayout(
+        navController = navController,
+        modifier = Modifier.fillMaxSize(),
+        currentDestination = currentDestination,
+        isLandscape = isLandscape,
+        initiallyExpanded = false
+    ) {
+        azConfig(
+            packButtons = false,
+            dockingSide = AzDockingSide.LEFT
+        )
+
+        azRailItem(id = "scan", text = "Scan", onClick = onScanClick)
+        azRailItem(id = "attack", text = "Attack", onClick = { viewModel.startAttack() })
+        azRailItem(
+            id = "dictionary",
+            text = "Dictionary",
+            onClick = { showDictionaryScreen = true })
+
+        onscreen {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding) // Apply padding from Scaffold
                     .padding(horizontal = 16.dp), // Apply horizontal padding to the main column
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
