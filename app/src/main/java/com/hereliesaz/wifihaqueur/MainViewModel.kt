@@ -108,40 +108,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 // If it's a redirect, it might be the virus scan page
                 val checkUrl = URL(redirectUrl)
                 val checkConnection = checkUrl.openConnection() as java.net.HttpURLConnection
-                checkConnection.connect()
+                try {
+                    checkConnection.connect()
 
-                val contentType = checkConnection.contentType ?: ""
+                    val contentType = checkConnection.contentType ?: ""
 
-                if (contentType.startsWith("text/html")) {
-                    val input = checkConnection.inputStream
-                    val content = input.bufferedReader().use { it.readText() }
-                    input.close()
-                    checkConnection.disconnect()
+                    if (contentType.startsWith("text/html")) {
+                        val content = checkConnection.inputStream.bufferedReader().use { it.readText() }
 
-                    // Check if it's the virus scan warning page and extract the download link
-                    if (content.contains("uc-download-link")) {
-                        val confirmRegex = """name="confirm" value="([^"]+)"""".toRegex()
-                        val uuidRegex = """name="uuid" value="([^"]+)"""".toRegex()
-                        val confirmMatch = confirmRegex.find(content)
-                        val uuidMatch = uuidRegex.find(content)
+                        // Check if it's the virus scan warning page and extract the download link
+                        if (content.contains("uc-download-link")) {
+                            val confirmRegex = """name="confirm" value="([^"]+)"""".toRegex()
+                            val uuidRegex = """name="uuid" value="([^"]+)"""".toRegex()
+                            val confirmMatch = confirmRegex.find(content)
+                            val uuidMatch = uuidRegex.find(content)
 
-                        if (confirmMatch != null) {
-                            val confirmToken = confirmMatch.groupValues[1]
-                            var finalUrl = "$redirectUrl&confirm=$confirmToken"
-                            if (uuidMatch != null) {
-                                finalUrl += "&uuid=${uuidMatch.groupValues[1]}"
+                            if (confirmMatch != null) {
+                                val confirmToken = confirmMatch.groupValues[1]
+                                var finalUrl = "$redirectUrl&confirm=$confirmToken"
+                                if (uuidMatch != null) {
+                                    finalUrl += "&uuid=${uuidMatch.groupValues[1]}"
+                                }
+                                return finalUrl
                             }
-                            return finalUrl
                         }
                     }
-                } else {
-                     checkConnection.disconnect()
+                } finally {
+                    checkConnection.disconnect()
                 }
                 return redirectUrl
             }
             connection.disconnect()
             urlString
         } catch (e: Exception) {
+            android.util.Log.e("MainViewModel", "Error getting Google Drive download URL for $urlString", e)
             urlString
         }
     }
@@ -174,27 +174,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     connection.connect()
 
                     val fileLength = connection.contentLength
-                    val input = connection.inputStream
 
-                    val fileOutput = java.io.FileOutputStream(file)
-                    val data = ByteArray(4096)
-                    var total: Long = 0
-                    var count: Int
+                    connection.inputStream.use { input ->
+                        java.io.FileOutputStream(file).use { fileOutput ->
+                            val data = ByteArray(4096)
+                            var total: Long = 0
+                            var count: Int
 
-                    while (input.read(data).also { count = it } != -1) {
-                        total += count.toLong()
-                        if (fileLength > 0) {
-                            val progress = (total * 100 / fileLength).toFloat() / 100f
-                            _downloadProgress.value = progress
-                        } else {
-                            // Indeterminate progress
-                            _downloadProgress.value = -1f
+                            while (input.read(data).also { count = it } != -1) {
+                                total += count.toLong()
+                                if (fileLength > 0) {
+                                    val progress = (total * 100 / fileLength).toFloat() / 100f
+                                    _downloadProgress.value = progress
+                                } else {
+                                    // Indeterminate progress
+                                    _downloadProgress.value = -1f
+                                }
+                                fileOutput.write(data, 0, count)
+                            }
                         }
-                        fileOutput.write(data, 0, count)
                     }
-
-                    fileOutput.close()
-                    input.close()
 
                     lines = file.readLines()
                 }
