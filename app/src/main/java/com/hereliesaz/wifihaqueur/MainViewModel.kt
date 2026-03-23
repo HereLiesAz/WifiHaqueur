@@ -157,18 +157,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     file.exists() && file.length() > 0
                 }
 
-                val lines: List<String>
-
                 if (exists) {
                     _logMessages.value = _logMessages.value + "Loading cached dictionary: $name"
-                    lines = withContext(Dispatchers.IO) {
-                        file.readLines()
-                    }
                 } else {
                     _logMessages.value = _logMessages.value + "Downloading dictionary from: $originalUrlString"
                     _downloadProgress.value = 0f
 
-                    lines = withContext(Dispatchers.IO) {
+                    withContext(Dispatchers.IO) {
                         val urlString = getGoogleDriveDownloadUrl(originalUrlString)
                         val url = URL(urlString)
                         val connection = url.openConnection() as java.net.HttpURLConnection
@@ -201,15 +196,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 }
                             }
                         }
-
-                        file.readLines()
                     }
                 }
 
+                val count = withContext(Dispatchers.IO) {
+                    file.bufferedReader().useLines { it.count().toLong() }
+                }
+
+                val previewLines = withContext(Dispatchers.IO) {
+                    file.bufferedReader().useLines { it.take(100).toList() }
+                }
+
                 _downloadProgress.value = null
-                _dictionarySource.value = DictionarySource.InMemory(lines)
-                _dictionary.value = lines // For legacy UI binding if needed
-                _totalPasswords.value = lines.size.toLong()
+                _dictionarySource.value = DictionarySource.FileUri(Uri.fromFile(file))
+                _dictionary.value = previewLines // Preview instead of loading entirely in-memory
+                _totalPasswords.value = count
                 _logMessages.value = _logMessages.value + "Dictionary loaded successfully. Ready to use."
             } catch (e: Exception) {
                 _downloadProgress.value = null
