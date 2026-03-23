@@ -11,6 +11,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.Uri
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
@@ -26,10 +27,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.net.URL
 import kotlin.coroutines.resume
-import android.net.Uri
-import java.io.InputStream
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -92,6 +92,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         "Birthdays (1980-2010)" to "https://drive.google.com/uc?export=download&id=10-5CLasOmnKKXyev3_DCBSd179lOkcGz",
         "500,000-Word Super List" to "https://drive.google.com/uc?export=download&id=1009Wo_1_Kp2smZU6gu58_KC1dg32P2uJ",
         "Two Million Password Set" to "https://drive.google.com/uc?export=download&id=1-cxYagogFXGdXDBg94P5o5i14U9Zi5bt",
+        "10-Digit Numbers" to "https://drive.google.com/uc?export=download&id=1-UUgpot08dghuKGWgWNKwRmCVY6Pmr_H",
         "20 Million Password Set" to "https://drive.google.com/uc?export=download&id=1-ff2HELXghs_YBniy4GTszONlywPULs2",
         "160 Million Password Set" to "https://drive.google.com/uc?export=download&id=1-XPAMKVJ77HFNB2qNxgeEtyJq1awkFeP"
     )
