@@ -199,7 +199,7 @@ fun MainScreen(
 
         azTheme(
             activeColor = Primary,
-            defaultShape = AzButtonShape.RECTANGLE
+            defaultShape = AzButtonShape.CIRCLE
         )
 
         azRailItem(id = "scan", text = "Scan", onClick = onScanClick)
