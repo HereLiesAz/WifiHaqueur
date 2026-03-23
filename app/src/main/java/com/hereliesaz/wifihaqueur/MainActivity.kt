@@ -187,6 +187,14 @@ fun MainScreen(
         isLandscape = isLandscape,
         initiallyExpanded = false
     ) {
+        background(weight = 0) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+            )
+        }
+
         azConfig(
             packButtons = false,
             dockingSide = AzDockingSide.LEFT
