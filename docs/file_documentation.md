@@ -12,7 +12,7 @@ This file specifies which files and directories should be ignored by Git. This i
 
 ### `README.md`
 
-This file provides an introduction to the WifiHaqueuer project. It includes a description of the project, its features, installation instructions, and credits.
+This file provides an introduction to the WiFi Haqueur project. It includes a description of the project, its features, installation instructions, and credits.
 
 ---
 
