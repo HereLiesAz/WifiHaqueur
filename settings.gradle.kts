@@ -21,5 +21,5 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "WifiHaqueuer"
+rootProject.name = "WiFi Haqueur"
 include(":app")

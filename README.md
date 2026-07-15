@@ -1,8 +1,8 @@
-# WifiHaqueuer - The Unethical but Mostly Ineffectual Brutish WiFi Tool for Haqueurs
+# WiFi Haqueur - The Unethical but Mostly Ineffectual Brutish WiFi Tool for Haqueurs
 
 **"To understand a haqueur, go break something. And then wonder why it's broken."**
 
-WifiHaqueuer is a blunt instrument you can whack a router with using the force of a brute. Based on the original `WiFiHacker` by fsecurify, this tool is designed for upscale script kiddies and the secretarially lazy.
+WiFi Haqueur is a blunt instrument you can whack a router with using the force of a brute. Based on the original `WiFiHacker` by fsecurify, this tool is designed for upscale script kiddies and the secretarially lazy.
 
 **Disclaimer:** This application is definitely not intended for educational or ethical purposes, but we will definitely now say that that's not true and that yes, it is. So, be a good wee one and do not winky face use this tool for any illegal activities nudge nudge. Even if you do, I'm not responsible for your bad behavior. FOR SHAME. 
 
