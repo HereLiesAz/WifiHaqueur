@@ -76,5 +76,5 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.10.0-alpha02")
-    implementation("com.github.HereLiesAz:AzNavRail:2.7")
+    implementation("com.github.HereLiesAz:AzNavRail:11.0")
 }
