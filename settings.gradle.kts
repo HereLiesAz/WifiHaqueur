@@ -8,6 +8,9 @@ pluginManagement {
         }
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 dependencyResolutionManagement {
     repositories {
         google()
@@ -18,7 +21,5 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "WifiHaqueur"
+rootProject.name = "WiFi Haqueur"
 include(":app")
-include(":NetworkScanner")
-include(":wifibrute-compose")

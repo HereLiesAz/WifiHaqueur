@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.hereliesaz.aznavrail.AzButton
+import com.hereliesaz.aznavrail.model.AzButtonShape
 
 data class Dictionary(val name: String, val url: String)
 
@@ -29,7 +31,7 @@ val dictionaries = listOf(
 )
 
 @Composable
-fun DictionarySelectionDialog(
+fun DictionarySelectionScreen(
     onDismiss: () -> Unit,
     onDictionarySelected: (Dictionary) -> Unit,
     onPickFile: () -> Unit
@@ -50,9 +52,11 @@ fun DictionarySelectionDialog(
                         )
                     }
                 }
-                Button(onClick = onPickFile) {
-                    Text("Pick from device")
-                }
+                AzButton(
+                    text = "Pick from device",
+                    onClick = onPickFile,
+                    shape = AzButtonShape.RECTANGLE
+                )
             }
         },
         confirmButton = {
