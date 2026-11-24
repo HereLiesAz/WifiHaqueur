@@ -50,6 +50,7 @@ android {
 }
 
 dependencies {
+    implementation("com.github.HereLiesAz.AzNavRail:aznavrail-updates:12.5")
 
     implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")

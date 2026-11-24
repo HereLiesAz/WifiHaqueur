@@ -1,5 +1,7 @@
 package com.hereliesaz.wifihaqueur
 
+import com.hereliesaz.aznavrail.updates.AzUpdateChecker
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.wifi.ScanResult
@@ -89,6 +91,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AzUpdateChecker.check(this, "HereLiesAz/WifiHaqueur")
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             WifiHaqueurTheme {

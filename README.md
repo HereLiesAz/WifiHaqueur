@@ -31,3 +31,7 @@ Or, to build the app yourself to get the same result:
 ## 🙏 Credits
 
 This project is a fork and an unimaginative reimagination of the original [WiFiHacker](https://github.com/fsecurify/WiFiHacker) by fsecurify. All credit for the original concept and core functionality is theirs. I revived and updated the project for longevity.
+
+## Updates
+
+Release builds check stable GitHub releases with AzNavRail 12.5. Debug builds skip checks; only public release metadata is requested.
